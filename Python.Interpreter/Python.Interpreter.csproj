@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Python.Core\Python.Core.csproj" />
+    <ProjectReference Include="..\Python.Tokenizer\Python.Tokenizer.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,29 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Python.Interpreter", "Python.Interpreter\Python.Interpreter.csproj", "{FC01461D-BEFF-47C7-B47B-486CF4A65C83}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Python.Core", "Python.Core\Python.Core.csproj", "{414285C3-3A97-447C-A37D-B2D5595E42E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Python.Tokenizer", "Python.Tokenizer\Python.Tokenizer.csproj", "{6F23F514-BA3B-4688-B87B-0728F81A5ADB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FC01461D-BEFF-47C7-B47B-486CF4A65C83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC01461D-BEFF-47C7-B47B-486CF4A65C83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC01461D-BEFF-47C7-B47B-486CF4A65C83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC01461D-BEFF-47C7-B47B-486CF4A65C83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{414285C3-3A97-447C-A37D-B2D5595E42E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{414285C3-3A97-447C-A37D-B2D5595E42E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{414285C3-3A97-447C-A37D-B2D5595E42E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{414285C3-3A97-447C-A37D-B2D5595E42E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F23F514-BA3B-4688-B87B-0728F81A5ADB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F23F514-BA3B-4688-B87B-0728F81A5ADB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F23F514-BA3B-4688-B87B-0728F81A5ADB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F23F514-BA3B-4688-B87B-0728F81A5ADB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

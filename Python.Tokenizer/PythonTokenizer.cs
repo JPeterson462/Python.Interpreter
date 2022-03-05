@@ -60,6 +60,15 @@ namespace Python.Tokenizer
                     Value = Source.Substring(start, end - start).Trim()
                 };
             }
+            if (GetNext(2) == "->")
+            {
+                SkipNext(2);
+                return new Token
+                {
+                    Type = TokenType.ReturnHint,
+                    Value = null
+                };
+            }
             if (GetNext(3) == "\"\"\"")
             {
                 // multi line comment

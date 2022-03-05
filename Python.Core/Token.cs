@@ -8,7 +8,7 @@ namespace Python.Core
         BeginParameters, EndParameters, BeginList, EndList,
         ObjectReference, Variable, Operator, ElementSeparator,
         Formatted, Bytes, Decorator, Str, Int, DictionaryStart,
-        DictionaryEnd, Tab, Comment
+        DictionaryEnd, Tab, Comment, ReturnHint
     }
     public class Token
     {

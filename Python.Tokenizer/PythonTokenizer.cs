@@ -370,11 +370,6 @@ namespace Python.Tokenizer
             {
                 return null;
             }
-            Console.WriteLine($"CHAR*: '{(int)Source[end + 0]}'");
-            Console.WriteLine($"CHAR_: '{(int)Source[end + 1]}'");
-            Console.WriteLine($"CHAR_: '{(int)Source[end + 2]}'");
-            Console.WriteLine($"CHAR_: '{(int)Source[end + 3]}'");
-            Console.WriteLine($"CHAR_: '{(int)Source[end + 4]}'");
             SkipNext(end - start);
             return Source.Substring(start, end - start);
         }

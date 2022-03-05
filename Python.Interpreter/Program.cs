@@ -11,7 +11,7 @@ namespace Python.Interpreter
         {
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test1.py");
             PythonTokenizer tokenizer = new PythonTokenizer(source);
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 20; i++)
             {
                 Console.WriteLine("NEXT: " + tokenizer.GetCurrentCharacter());
                 Token t = tokenizer.NextToken();

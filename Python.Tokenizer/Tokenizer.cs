@@ -48,12 +48,17 @@ namespace Python.Tokenizer
         }
         public bool IsWhitespace(char c, bool tabsAsWhitespace = true)
         {
-            return c == ' ' || (tabsAsWhitespace && c == '\t') || c == '\r' || c == '\n';
+            // don't process tabs as whitespace, process them as TokenType.Tab
+            return c == ' ' || /*(tabsAsWhitespace && c == '\t') ||*/ c == '\r' || c == '\n';
         }
         public void SkipWhitespace(bool tabsAsWhitespace = true)
         {
             while (IsWhitespace(Source[Position], tabsAsWhitespace))
             {
+                if (Source[Position] == '\n')
+                {
+                    break; // stop after the newline
+                }
                 Position++;
             }
         }

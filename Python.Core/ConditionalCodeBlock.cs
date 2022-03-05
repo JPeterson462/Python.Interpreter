@@ -1,8 +1,13 @@
 ﻿using System;
 namespace Python.Core
 {
+    public enum ConditionalType
+    {
+        If
+    }
     public class ConditionalCodeBlock : CodeBlock
     {
-        public Condition Condition { get; set; }
+        public ConditionalType Type { get; set; }
+        public Expression Condition { get; set; }
     }
 }

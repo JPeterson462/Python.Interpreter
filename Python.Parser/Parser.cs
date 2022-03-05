@@ -21,5 +21,28 @@ namespace Python.Parser
         {
             Position += n;
         }
+        /*public List<Token> ReadUntil(TokenType type, bool consume = true)
+        {
+            List<Token> tokens = new List<Token>();
+            int pos = Position;
+            while (Tokens[pos].Type != type) {
+                tokens.Add(Tokens[pos]);
+                pos++;
+                if (consume)
+                {
+                    Advance();
+                }
+            }
+            return tokens;
+        }*/
+        public int FindNext(TokenType type)
+        {
+            int pos = Position;
+            while (Tokens[pos].Type != type)
+            {
+                pos++;
+            }
+            return pos;
+        }
     }
 }

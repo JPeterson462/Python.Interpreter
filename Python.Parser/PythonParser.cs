@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Python.Core;
+using Python.Core.Expressions;
 
 namespace Python.Parser
 {
@@ -29,20 +30,21 @@ namespace Python.Parser
                 Advance();
                 if (token.Type == TokenType.Keyword && token.Value == Keyword.If.Value)
                 {
-                    Condition condition = ParseSimpleCondition();
-                    SkipNext(3);
+                    int endOfCondition = FindNext(TokenType.BeginBlock);
+                    Expression condition = ParseExpression(Position, endOfCondition);
+                    SkipNext(endOfCondition - Position);
                     currentIndent++;
                     if (Tokens[Position].Type == TokenType.BeginBlock)
                     {
                         Advance();
-                        script.CodeBlocks.Add(ParseConditionalCodeBlock(condition));
+                        script.CodeBlocks.Add(ParseConditionalCodeBlock(condition, ConditionalType.If));
                     }
                 }
                 break;
             }
             return script;
         }
-        public ConditionalCodeBlock ParseConditionalCodeBlock(Condition condition)
+        public ConditionalCodeBlock ParseConditionalCodeBlock(Expression condition, ConditionalType type)
         {
             ConditionalCodeBlock codeBlock = new ConditionalCodeBlock()
             {
@@ -62,27 +64,66 @@ namespace Python.Parser
             //Console.WriteLine(Enum.GetName(typeof(TokenType), possibleTab.Type) + " " + possibleTab.Count);
             return codeBlock;
         }
-        public Statement ParseStatement()
+        public Expression ParseExpression(int startPos, int endPos)
         {
-            return null;
-        }
-        public Condition ParseSimpleCondition()
-        {
-            Token leftHand = Tokens[Position + 0];
-            Token op = Tokens[Position + 1];
-            Token rightHand = Tokens[Position + 2];
-            if (op.Type == TokenType.Operator)
+            Token token = Tokens[startPos];
+            Token nextToken = Tokens[startPos + 1];
+            if (nextToken.Type == TokenType.BeginBlock || token.Type == TokenType.String || token.Type == TokenType.Number)
             {
-                return new Condition
+                return new SimpleExpression
                 {
-                    LeftHandValue = leftHand.Value,
-                    RightHandValue = rightHand.Value,
-                    Operator = longestOperators.FirstOrDefault(o => o.Value == op.Value),
-                    IsLeftHandVariable = leftHand.Type == TokenType.Keyword,
-                    IsRightHandVariable = rightHand.Type == TokenType.Keyword
+                    Value = token.Value,
+                    IsConstant = token.Type != TokenType.Keyword
                 };
             }
-            return null;
+            else
+            {
+                if (token.Type == TokenType.BeginParameters)
+                {
+                    int start = Position, end = start + 1, parenthesesCount = 1;
+                    while (parenthesesCount > 0)
+                    {
+                        if (Tokens[end].Type == TokenType.BeginParameters)
+                        {
+                            parenthesesCount++;
+                        }
+                        if (Tokens[end].Type == TokenType.EndParameters)
+                        {
+                            parenthesesCount--;
+                        }
+                        end++;
+                    }
+                    Expression leftHandExpression = ParseExpression(start + 1, end - 1);
+                    if (end == endPos)
+                    {
+                        return leftHandExpression;
+                    }
+                    Operator op = new Operator(Tokens[end].Value);
+                    Expression rightHandExpression = ParseExpression(end + 1, endPos);
+                    return new EvaluatedExpression
+                    {
+                        LeftHandValue = leftHandExpression,
+                        Operator = op,
+                        RightHandValue = rightHandExpression
+                    };
+                }
+                else
+                {
+                    Expression leftHandExpression = new SimpleExpression
+                    {
+                        Value = token.Value,
+                        IsConstant = token.Type != TokenType.Keyword
+                    };
+                    Operator op = new Operator(Tokens[startPos + 1].Value);
+                    Expression rightHandExpression = ParseExpression(startPos + 2, endPos);
+                    return new EvaluatedExpression
+                    {
+                        LeftHandValue = leftHandExpression,
+                        Operator = op,
+                        RightHandValue = rightHandExpression
+                    };
+                }
+            }
         }
     }
 }

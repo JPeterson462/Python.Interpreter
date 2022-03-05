@@ -5,6 +5,6 @@ namespace Python.Core
 {
     public class CodeBlock
     {
-        public List<Statement> Statements = new List<Statement>();
+        public List<Expression> Statements = new List<Expression>();
     }
 }

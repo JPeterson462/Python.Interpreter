@@ -101,7 +101,7 @@ namespace Python.Tokenizer
             }
             else
             {
-                return Source.Substring(Position, 3);
+                return Source.Substring(Position, n);
             }
         }
     }

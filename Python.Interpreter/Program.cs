@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Python.Core;
+using Python.Parser;
 using Python.Tokenizer;
 
 namespace Python.Interpreter
@@ -10,10 +11,11 @@ namespace Python.Interpreter
     {
         static void Main(string[] args)
         {
-            string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test6.py");
+            string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test1.py");
+
             PythonTokenizer tokenizer = new PythonTokenizer(source);
             List<Token> tokens = tokenizer.Consume();
-            DateTime startTime = DateTime.Now;
+            /*DateTime startTime = DateTime.Now;
             Console.WriteLine(startTime + ": start");
             foreach (Token t in tokens)
             {
@@ -22,7 +24,10 @@ namespace Python.Interpreter
             DateTime endTime = DateTime.Now;
             Console.WriteLine(endTime + ": end");
             TimeSpan difference = endTime.Subtract(startTime);
-            Console.WriteLine("Time elapsed: " + difference.Milliseconds + "ms");
+            Console.WriteLine("Time elapsed: " + difference.Milliseconds + "ms");*/
+
+            PythonParser parser = new PythonParser(tokens);
+            Script script = parser.Parse();
 
             Console.WriteLine("** done **");
         }

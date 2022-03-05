@@ -43,7 +43,7 @@ namespace Python.Tokenizer
                 {
                     Type = TokenType.Tab,
                     Value = null,
-                    Count = start - end
+                    Count = end - start
                 };
             }
             if (GetCurrentCharacter() == '\n')

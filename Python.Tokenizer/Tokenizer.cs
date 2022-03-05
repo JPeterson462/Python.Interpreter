@@ -1,15 +1,38 @@
 ﻿using System;
+using System.Collections.Generic;
+using Python.Core;
+
 namespace Python.Tokenizer
 {
-    public class Tokenizer
+    public abstract class Tokenizer
     {
         public int Position { get; private set; }
         public string Source { get; private set; }
         public int Total => Source.Length;
+        public int Remaining => Total - Position;
+        public Token PreviousToken { get; set; }
         public Tokenizer(string source)
         {
             Position = 0;
             Source = source;
+        }
+        public abstract Token NextToken();
+        public List<Token> Consume()
+        {
+            List<Token> tokens = new List<Token>();
+            while (Remaining > 0)
+            {
+                Token t = NextToken();
+                if (t != null)
+                {
+                    tokens.Add(t);
+                    if (t.Type != TokenType.Comment)
+                    {
+                        PreviousToken = t;
+                    }
+                }
+            }
+            return tokens;
         }
         public char GetCurrentCharacter()
         {
@@ -69,6 +92,17 @@ namespace Python.Tokenizer
         public void Advance()
         {
             Position++;
+        }
+        public string GetNext(int n)
+        {
+            if (Remaining < n)
+            {
+                return null;
+            }
+            else
+            {
+                return Source.Substring(Position, 3);
+            }
         }
     }
 }

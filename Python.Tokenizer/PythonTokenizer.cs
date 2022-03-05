@@ -21,7 +21,7 @@ namespace Python.Tokenizer
             longestKeywords = Keyword.ALL.ToList().OrderByDescending(kw => kw.Value.Length);
             longestOperators = Operator.ALL.ToList().OrderByDescending(op => op.Value.Length);
         }
-        public Token NextToken()
+        public override Token NextToken()
         {
             if (GetCurrentCharacter() == '\t' || GetCurrentCharacter() == ' ')
             {
@@ -43,6 +43,39 @@ namespace Python.Tokenizer
             {
                 Advance();
                 return null;
+            }
+            if (GetCurrentCharacter() == '#')
+            {
+                // single line comment
+                Advance();
+                int start = Position, end = start + 1;
+                while (Source[end] != '\n')
+                {
+                    end++;
+                }
+                SkipNext(end - start);
+                return new Token
+                {
+                    Type = TokenType.Comment,
+                    Value = Source.Substring(start, end - start).Trim()
+                };
+            }
+            if (GetNext(3) == "\"\"\"")
+            {
+                // multi line comment
+                SkipNext(3);
+                int start = Position, end = start + 1;
+                while (Source.Length - end >= 3 && Source.Substring(end, 3) != "\"\"\"")
+                {
+                    end++;
+                }
+                SkipNext(end - start);
+                SkipNext(3);
+                return new Token
+                {
+                    Type = TokenType.Comment,
+                    Value = Source.Substring(start, end - start).Trim()
+                };
             }
             if (GetCurrentCharacter() == '(')
             {
@@ -104,6 +137,36 @@ namespace Python.Tokenizer
                     Value = null
                 };
             }
+            if (GetCurrentCharacter() == ',')
+            {
+                Advance();
+                SkipWhitespace();
+                return new Token
+                {
+                    Type = TokenType.ElementSeparator,
+                    Value = null
+                };
+            }
+            if (GetCurrentCharacter() == '@')
+            {
+                Advance();
+                SkipWhitespace();
+                return new Token
+                {
+                    Type = TokenType.Decorator,
+                    Value = null
+                };
+            }
+            if (GetCurrentCharacter() == '.' && PreviousToken?.Type == TokenType.Variable)
+            {
+                Advance();
+                SkipWhitespace();
+                return new Token
+                {
+                    Type = TokenType.ObjectReference,
+                    Value = null
+                };
+            }
             Keyword kw = NextKeyword();
             if (kw != null)
             {
@@ -140,11 +203,46 @@ namespace Python.Tokenizer
             if (next == ':')
             {
                 Advance();
-                Console.WriteLine($"Next: '{GetCurrentCharacter()}'");
                 SkipWhitespace(false); // skip but it's a block so we care about the tabs
                 return new Token
                 {
                     Type = TokenType.BeginBlock,
+                    Value = null
+                };
+            }
+            if (GetNext(3) == "str")
+            {
+                SkipNext(3);
+                return new Token
+                {
+                    Type = TokenType.Str,
+                    Value = null
+                };
+            }
+            if (GetNext(3) == "int")
+            {
+                SkipNext(3);
+                return new Token
+                {
+                    Type = TokenType.Int,
+                    Value = null
+                };
+            }
+            if (GetNext(2) == "b\"" || GetNext(2) == "b'")
+            {
+                SkipNext(1);
+                return new Token
+                {
+                    Type = TokenType.Bytes,
+                    Value = null
+                };
+            }
+            if (GetNext(2) == "f\"" || GetNext(2) == "f'")
+            {
+                SkipNext(1);
+                return new Token
+                {
+                    Type = TokenType.Formatted,
                     Value = null
                 };
             }
@@ -168,7 +266,6 @@ namespace Python.Tokenizer
                     Value = variableName
                 };
             }
-            // str, int, decorator, bytes, formatted, element separator, object reference
             return null;
         }
         public Keyword NextKeyword()

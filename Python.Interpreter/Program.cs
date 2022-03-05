@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Python.Core;
 using Python.Tokenizer;
@@ -11,15 +12,12 @@ namespace Python.Interpreter
         {
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test1.py");
             PythonTokenizer tokenizer = new PythonTokenizer(source);
-            for (int i = 0; i < 20; i++)
+            List<Token> tokens = tokenizer.Consume();
+            foreach (Token t in tokens)
             {
-                Console.WriteLine("NEXT: " + tokenizer.GetCurrentCharacter());
-                Token t = tokenizer.NextToken();
                 PrintToken(t);
             }
-            Console.WriteLine("NEXT: " + tokenizer.GetCurrentCharacter());
             Console.WriteLine("** done **");
-            Console.WriteLine($"TEST: {tokenizer.IsWhitespace('\t', false)}");
         }
         private static  void PrintToken(Token t)
         {

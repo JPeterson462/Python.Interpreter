@@ -2,5 +2,7 @@
     a = 100
     b = "test"
     c = 2.1
-    print(b)
+    print(b) # Comment one
     print(a * c)
+    """
+    Comment "" still comment """

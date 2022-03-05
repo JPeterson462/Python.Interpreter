@@ -24,6 +24,12 @@ namespace Python.Tokenizer
         }
         public override Token NextToken()
         {
+            if (GetCurrentCharacter() == '\\' && Source[Position + 1] == '\n')
+            {
+                // \ is a non-breaking newline
+                SkipNext(2);
+                return null;
+            }
             if (GetCurrentCharacter() == '\t' || GetCurrentCharacter() == ' ')
             {
                 //Advance();
@@ -276,6 +282,7 @@ namespace Python.Tokenizer
                     Value = variableName
                 };
             }
+            Console.WriteLine("unknown: " + Source.Substring(Position, 10));
             Console.WriteLine("uh-oh!");
             return null;
         }
@@ -296,7 +303,7 @@ namespace Python.Tokenizer
         public Operator NextOperator()
         {
             string sequence = ReadUntilNext(Operator.CharacterSet);
-            Console.WriteLine($"Operator: '{sequence}'");
+            //Console.WriteLine($"Operator: '{sequence}'");
             if (sequence.Length == 0)
             {
                 return null;
@@ -304,6 +311,11 @@ namespace Python.Tokenizer
             else
             {
                 Operator op = longestOperators.FirstOrDefault(o => o.Value == sequence);
+                if (op == null && sequence[0] == '=')
+                {
+                    // try the equal sign
+                    op = new Operator("=");
+                }
                 return op;
             }
         }

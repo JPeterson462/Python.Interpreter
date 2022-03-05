@@ -14,7 +14,8 @@ namespace Python.Tokenizer
         private IEnumerable<Keyword> longestKeywords;
         private IEnumerable<Operator> longestOperators;
         private List<char> allowedVariableCharacters = new List<char>((UppercaseLetters + LowercaseLetters + Numbers + "_").ToCharArray());
-        private List<char> allowedVariablePrefixes = new List<char>((UppercaseLetters + LowercaseLetters + Numbers).ToCharArray());
+        private List<char> allowedVariablePrefixes = new List<char>((UppercaseLetters + LowercaseLetters + Numbers + "_").ToCharArray());
+        // variables shouldn't start with _ but numpy has __all__?
         private List<char> allowedNumberCharacters = new List<char>((Numbers + "e.j").ToCharArray());
         public PythonTokenizer(string source) : base(source)
         {
@@ -275,6 +276,7 @@ namespace Python.Tokenizer
                     Value = variableName
                 };
             }
+            Console.WriteLine("uh-oh!");
             return null;
         }
         public Keyword NextKeyword()
@@ -294,7 +296,7 @@ namespace Python.Tokenizer
         public Operator NextOperator()
         {
             string sequence = ReadUntilNext(Operator.CharacterSet);
-            //Console.WriteLine($"Sequence: '{sequence}'");
+            Console.WriteLine($"Operator: '{sequence}'");
             if (sequence.Length == 0)
             {
                 return null;

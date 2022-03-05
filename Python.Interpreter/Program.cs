@@ -13,10 +13,17 @@ namespace Python.Interpreter
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test3.py");
             PythonTokenizer tokenizer = new PythonTokenizer(source);
             List<Token> tokens = tokenizer.Consume();
+            DateTime startTime = DateTime.Now;
+            Console.WriteLine(startTime + ": start");
             foreach (Token t in tokens)
             {
                 PrintToken(t);
             }
+            DateTime endTime = DateTime.Now;
+            Console.WriteLine(endTime + ": end");
+            TimeSpan difference = endTime.Subtract(startTime);
+            Console.WriteLine("Time elapsed: " + difference.Milliseconds + "ms");
+
             Console.WriteLine("** done **");
         }
         private static  void PrintToken(Token t)

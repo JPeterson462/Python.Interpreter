@@ -7,6 +7,10 @@ namespace Python.Core
         public static readonly Operator Subtract = new Operator("-");
         public static readonly Operator Multiply = new Operator("*");
         public static readonly Operator Divide = new Operator("/");
+        public static readonly Operator AddSet = new Operator("+=");
+        public static readonly Operator SubtractSet = new Operator("-=");
+        public static readonly Operator MultiplySet = new Operator("*=");
+        public static readonly Operator DivideSet = new Operator("/=");
         public static readonly Operator FloorDivide = new Operator("//");
         public static readonly Operator Modulus = new Operator("%");
         public static readonly Operator Exponentiation = new Operator("**");
@@ -17,17 +21,27 @@ namespace Python.Core
         public static readonly Operator GreaterThan = new Operator(">");
         public static readonly Operator LessThanOrEqualTo = new Operator("<=");
         public static readonly Operator GreaterThanOrEqualTo = new Operator(">=");
-        public static readonly Operator Is = new Operator("is");
-        public static readonly Operator In = new Operator("in");
-        public static readonly Operator Not = new Operator("not");
+        public static readonly Operator LeftShift = new Operator("<<");
+        public static readonly Operator RightShift = new Operator(">>");
+        public static readonly Operator BitwiseAnd = new Operator("&");
+        public static readonly Operator BitwiseOr = new Operator("|");
+        public static readonly Operator BitwiseNot = new Operator("~");
+        public static readonly Operator BitwiseXor = new Operator("^");
+        public static readonly Operator LeftShiftSet = new Operator("<<=");
+        public static readonly Operator RightShiftSet = new Operator(">>=");
+        public static readonly Operator BitwiseAndSet = new Operator("&=");
+        public static readonly Operator BitwiseOrSet = new Operator("|=");
+        public static readonly Operator BitwiseXorSet = new Operator("^=");
 
-        public static readonly char[] CharacterSet = "+-*/%=!<>isnot".ToCharArray();
+        public static readonly char[] CharacterSet = "+-*/%=!<>&|~^".ToCharArray();
 
         public static readonly Operator[] ALL = new Operator[]
         {
             Add, Subtract, Multiply, Divide, FloorDivide, Modulus, Exponentiation,
             EqualTo, Set, NotEqualTo, LessThan, GreaterThan, LessThanOrEqualTo,
-            GreaterThanOrEqualTo, Is, In, Not
+            GreaterThanOrEqualTo, AddSet, SubtractSet, MultiplySet, DivideSet,
+            LeftShift, RightShift, BitwiseAnd, BitwiseOr, BitwiseNot, BitwiseXor,
+            LeftShiftSet, RightShiftSet, BitwiseAndSet, BitwiseOrSet, BitwiseXorSet
         };
 
         public string Value { get; set; }

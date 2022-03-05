@@ -22,6 +22,7 @@ namespace Python.Tokenizer
             List<Token> tokens = new List<Token>();
             while (Remaining > 0)
             {
+                //Console.WriteLine(DateTime.Now + " : " + Position + "/" + Source.Length + " - " + Source.Substring(Position, 10));
                 Token t = NextToken();
                 if (t != null)
                 {

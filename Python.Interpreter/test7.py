@@ -1,5 +1,8 @@
 a = 100
 
+if a > 10:
+    print("more than ten")
+
 b = 10
 
 """

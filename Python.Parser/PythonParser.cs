@@ -7,14 +7,13 @@ using Python.Core.Expressions;
 namespace Python.Parser
 {
     // TODO:
-    // lists, dictionaries, keyword handling, object references, formatted, bytes, int, str
+    // lists, dictionaries, keyword handling, object references, formatted, bytes, int, str, complex setters, decomposing tuples
     /*
         And, As, Assert, Async, Await, Break, Class, Continue, Def, Del,
         Elif, Else, Except, False, Finally, For, From, Global, If (done), Import,
         In, Is, Lambda, None, Nonlocal, Not, Or, Pass, Raise, Return, True,
         Try, While, With, Yield, Case, Match
      */
-    // in-progress: code block parsing recursively
     public class PythonParser : Parser
     {
         private IEnumerable<Keyword> longestKeywords;
@@ -31,26 +30,90 @@ namespace Python.Parser
         }
         public Script Parse()
         {
-            Script script = new Script();
-            int start = 0;
-            while (start < Tokens.Count)
+            Script script = new Script
             {
-                if (Tokens[start].Type == TokenType.EndOfExpression)
-                {
-                    // ignore blank lines
-                    start++;
-                    continue;
-                }
-                int startOfBlock = FindNext(TokenType.BeginBlock, start);
-                int endOfLine = FindNext(TokenType.EndOfExpression, start);
-                if (endOfLine < startOfBlock)
-                {
-                    script.Statements.Add(ParseExpression(start, endOfLine));
-                }
-                start = endOfLine + 1;
-            }
+                Statements = ParseCodeBlock(0, Tokens.Count, 0).Statements
+            };
             return script;
         }
+        private int FindEndOfIndent(int start, int tabCount)
+        {
+            int end = start + 1;
+            while (end < Tokens.Count && (Tokens[end].Count == null || Tokens[end].Count >= tabCount))
+            {
+                if (Tokens[end - 1].Type == TokenType.EndOfExpression && Tokens[end].Type != TokenType.Tab)
+                {
+                    // no indent, treated as Count = 0
+                    if (tabCount > 0)
+                    {
+                        break;
+                    }
+                }
+                end++;
+            }
+            return end;
+        }
+        public CodeBlock ParseCodeBlock(int startPos, int endPos, int indent)
+        {
+            List<Expression> statements = new List<Expression>();
+            while (startPos < endPos)
+            {
+                int startOfBlock = FindNext(TokenType.BeginBlock, startPos);
+                int endOfLine = FindNext(TokenType.EndOfExpression, startPos);
+                Token token = Tokens[startPos];
+                if (token.Type == TokenType.EndOfExpression)
+                {
+                    startPos++;
+                    continue;
+                }
+                if (endOfLine < startOfBlock)
+                {
+                    statements.Add(ParseExpression(startPos, endOfLine));
+                    startPos = endOfLine + 1;
+                }
+                else
+                {
+                    ConditionalType? type = null;
+                    if (token.Value == Keyword.If.Value)
+                    {
+                        type = ConditionalType.If;
+                    }
+                    if (token.Value == Keyword.Elif.Value)
+                    {
+                        type = ConditionalType.Elif;
+                    }
+                    if (token.Value == Keyword.Else.Value)
+                    {
+                        type = ConditionalType.Else;
+                    }
+                    if (type.HasValue)
+                    {
+                        int endOfCondition = FindNext(TokenType.BeginBlock, startPos + 1);
+                        Expression condition = ParseExpression(startPos + 1, endOfCondition);
+                        ConditionalCodeBlock ifBlock = new ConditionalCodeBlock
+                        {
+                            Condition = condition,
+                            Type = type.Value
+                        };
+                        int blockStart = endOfCondition + 1 + 1; // skip the BeginBlock and EndOfExpression
+                        while (blockStart < Tokens.Count && (Tokens[blockStart].Type == TokenType.EndOfExpression || (Tokens[blockStart].Type == TokenType.Tab && Tokens[blockStart + 1].Type == TokenType.EndOfExpression)))
+                        {
+                            blockStart += Tokens[blockStart].Type == TokenType.EndOfExpression ? 1 : 2; // empty lines (with or without a tab before)
+                        }
+                        Token tab = Tokens[blockStart];
+                        int blockEnd = FindEndOfIndent(blockStart, tab.Count.Value);
+                        ifBlock.Statements = ParseCodeBlock(blockStart + 1, blockEnd, tab.Count.Value).Statements;
+                        startPos = blockEnd + 1;
+                        statements.Add(ifBlock);
+                    }
+                }
+            }
+            return new CodeBlock
+            {
+                Statements = statements
+            };
+        }
+
         private void AddIndent(int value)
         {
             if (currentIndent >= indents.Count)
@@ -77,55 +140,10 @@ namespace Python.Parser
         {
             Token token = Tokens[startPos];
             Token nextToken = Tokens[startPos + 1];
-            if (token.Type == TokenType.Keyword)
+            /*if (token.Type == TokenType.Keyword)
             {
-                ConditionalType? type = null;
-                if (token.Value == Keyword.If.Value)
-                {
-                    type = ConditionalType.If;
-                }
-                if (token.Value == Keyword.Elif.Value)
-                {
-                    type = ConditionalType.Elif;
-                }
-                if (token.Value == Keyword.Else.Value)
-                {
-                    type = ConditionalType.Else;
-                }
-                if (type.HasValue)
-                {
-                    int endOfCondition = FindNext(TokenType.BeginBlock, startPos + 1);
-                    Expression condition = ParseExpression(startPos + 1, endOfCondition);
-                    ConditionalCodeBlock ifBlock = new ConditionalCodeBlock
-                    {
-                        Condition = condition,
-                        Type = type.Value
-                    };
-                    int blockStart = endOfCondition + 1 + 1; // skip the BeginBlock and EndOfExpression
-                    bool inBlock = true;
-                    while (inBlock)
-                    {
-                        while (blockStart< Tokens.Count && (Tokens[blockStart].Type == TokenType.EndOfExpression || (Tokens[blockStart].Type == TokenType.Tab && Tokens[blockStart + 1].Type == TokenType.EndOfExpression)))
-                        {
-                            blockStart += Tokens[blockStart].Type == TokenType.EndOfExpression ? 1 : 2; // empty lines (with or without a tab before)
-                        }
-                        if (blockStart == Tokens.Count)
-                        {
-                            // EOF
-                            break;
-                        }
-                        int endOfNextExpression = FindNext(TokenType.EndOfExpression, blockStart);
-                        Token tab = Tokens[blockStart];//TODO end of block based on indent
-                        ifBlock.Statements.Add(ParseExpression(blockStart + 1, endOfNextExpression));
-                        blockStart = endOfNextExpression + 1;
-                        if (endOfNextExpression >= Tokens.Count)
-                        {
-                            inBlock = false;
-                        }
-                    }
-                    return ifBlock;
-                }
-            }
+                
+            }*/
             if (token.Type == TokenType.Variable && nextToken.Type == TokenType.BeginParameters)
             {
                 // function call

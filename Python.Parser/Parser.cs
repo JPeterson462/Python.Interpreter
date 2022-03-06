@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Python.Core;
 
 namespace Python.Parser
@@ -10,7 +11,7 @@ namespace Python.Parser
         public int Position { get; private set; }
         public Parser(List<Token> tokens)
         {
-            Tokens = tokens;
+            Tokens = tokens.Where(t => t.Type != TokenType.Comment).ToList(); // strip comments before parsing
             Position = 0;
         }
         public void Advance()
@@ -35,10 +36,10 @@ namespace Python.Parser
             }
             return tokens;
         }*/
-        public int FindNext(TokenType type)
+        public int FindNext(TokenType type, int position = -1)
         {
-            int pos = Position;
-            while (Tokens[pos].Type != type)
+            int pos = position >= 0 ? position : Position;
+            while (pos < Tokens.Count && Tokens[pos].Type != type) // stop when we get to the token or the EOF
             {
                 pos++;
             }

@@ -23,26 +23,23 @@ namespace Python.Parser
         public Script Parse()
         {
             Script script = new Script();
-            while (Position < Tokens.Count)
+            /*while (Position < Tokens.Count)
             {
-                Token token = Tokens[Position];
-                Console.WriteLine("TOKEN: " + token.Value);
-                Advance();
-                if (token.Type == TokenType.Keyword && token.Value == Keyword.If.Value)
-                {
-                    int endOfCondition = FindNext(TokenType.BeginBlock);
-                    Expression condition = ParseExpression(Position, endOfCondition);
-                    SkipNext(endOfCondition - Position);
-                    currentIndent++;
-                    if (Tokens[Position].Type == TokenType.BeginBlock)
-                    {
-                        Advance();
-                        script.CodeBlocks.Add(ParseConditionalCodeBlock(condition, ConditionalType.If));
-                    }
-                }
-                break;
-            }
+                
+            }*/
+            script.Statements.Add(ParseExpression(0, Tokens.Count));
             return script;
+        }
+        private void AddIndent(int value)
+        {
+            if (currentIndent >= indents.Count)
+            {
+                indents.Add(value);
+            }
+            else
+            {
+                indents[currentIndent] = value;
+            }
         }
         public ConditionalCodeBlock ParseConditionalCodeBlock(Expression condition, ConditionalType type)
         {
@@ -64,16 +61,65 @@ namespace Python.Parser
             //Console.WriteLine(Enum.GetName(typeof(TokenType), possibleTab.Type) + " " + possibleTab.Count);
             return codeBlock;
         }
+        public Expression ParseStatement()
+        {
+            Token token = Tokens[Position];
+            if (token.Type == TokenType.Tab)
+            {
+                // process the indent level
+                Advance();
+            }
+            int endOfExpression = FindNext(TokenType.EndOfExpression);
+            return ParseExpression(Position, endOfExpression);
+        }
         public Expression ParseExpression(int startPos, int endPos)
         {
             Token token = Tokens[startPos];
             Token nextToken = Tokens[startPos + 1];
-            if (nextToken.Type == TokenType.BeginBlock || token.Type == TokenType.String || token.Type == TokenType.Number)
+            if (token.Type == TokenType.Keyword)
+            {
+                if (token.Value == Keyword.If.Value)
+                {
+                    int endOfCondition = FindNext(TokenType.BeginBlock, startPos + 1);
+                    Expression condition = ParseExpression(startPos + 1, endOfCondition);
+                    ConditionalCodeBlock ifBlock = new ConditionalCodeBlock
+                    {
+                        Condition = condition,
+                        Type = ConditionalType.If
+                    };
+                    int blockStart = endOfCondition + 1 + 1; // skip the BeginBlock and EndOfExpression
+                    bool inBlock = true;
+                    while (inBlock)
+                    {
+                        while (blockStart< Tokens.Count && (Tokens[blockStart].Type == TokenType.EndOfExpression || (Tokens[blockStart].Type == TokenType.Tab && Tokens[blockStart + 1].Type == TokenType.EndOfExpression)))
+                        {
+                            blockStart += Tokens[blockStart].Type == TokenType.EndOfExpression ? 1 : 2; // empty lines (with or without a tab before)
+                        }
+                        if (blockStart == Tokens.Count)
+                        {
+                            // EOF
+                            break;
+                        }
+                        int endOfNextExpression = FindNext(TokenType.EndOfExpression, blockStart);
+                        Token tab = Tokens[blockStart];//TODO end of block based on indent
+                        ifBlock.Statements.Add(ParseExpression(blockStart + 1, endOfNextExpression));
+                        blockStart = endOfNextExpression + 1;
+                        if (endOfNextExpression >= Tokens.Count)
+                        {
+                            inBlock = false;
+                        }
+                    }
+                    return ifBlock;
+                }
+            }
+            if ((nextToken.Type == TokenType.BeginBlock || nextToken.Type == TokenType.EndOfExpression) &&
+                (token.Type == TokenType.String || token.Type == TokenType.Number || token.Type == TokenType.Variable))
             {
                 return new SimpleExpression
                 {
                     Value = token.Value,
-                    IsConstant = token.Type != TokenType.Keyword
+                    IsConstant = token.Type == TokenType.String || token.Type == TokenType.Number,
+                    IsVariable = token.Type == TokenType.Variable
                 };
             }
             else
@@ -112,7 +158,8 @@ namespace Python.Parser
                     Expression leftHandExpression = new SimpleExpression
                     {
                         Value = token.Value,
-                        IsConstant = token.Type != TokenType.Keyword
+                        IsConstant = token.Type == TokenType.String || token.Type == TokenType.Number,
+                        IsVariable = token.Type == TokenType.Variable
                     };
                     Operator op = new Operator(Tokens[startPos + 1].Value);
                     Expression rightHandExpression = ParseExpression(startPos + 2, endPos);

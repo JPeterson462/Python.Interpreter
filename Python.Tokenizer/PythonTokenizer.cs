@@ -49,7 +49,11 @@ namespace Python.Tokenizer
             if (GetCurrentCharacter() == '\n')
             {
                 Advance();
-                return null;
+                return new Token
+                {
+                    Type = TokenType.EndOfExpression,
+                    Value = null
+                };
             }
             if (GetCurrentCharacter() == '#')
             {

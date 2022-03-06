@@ -40,10 +40,10 @@ namespace Python.Core
         public static readonly Keyword With = new Keyword("with", false, false);
         public static readonly Keyword Yield = new Keyword("yield", false, false);
         // soft keywords
-        public static readonly Keyword UNDERSCORE = new Keyword("_", false, false);
+        //public static readonly Keyword UNDERSCORE = new Keyword("_", false, false); // treat this one as a variable
         public static readonly Keyword Case = new Keyword("case", true, true);
         public static readonly Keyword Match = new Keyword("match", true, true);
-        public static readonly Keyword NAME = new Keyword("__name__", false, false);
+        //public static readonly Keyword NAME = new Keyword("__name__", false, false); // treat this one as a variable
 
         public static char[] CharacterSet = "TFNabcdefghilmnoprstuwy_".ToCharArray();
 
@@ -52,7 +52,7 @@ namespace Python.Core
             And, As, Assert, Async, Await, Break, Class, Continue, Def, Del,
             Elif, Else, Except, False, Finally, For, From, Global, If, Import,
             In, Is, Lambda, None, Nonlocal, Not, Or, Pass, Raise, Return, True,
-            Try, While, With, Yield, UNDERSCORE, Case, Match, NAME
+            Try, While, With, Yield, Case, Match //, UNDERSCORE, NAME
         };
 
         public string Value { get; set; }

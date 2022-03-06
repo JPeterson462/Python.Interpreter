@@ -6,6 +6,15 @@ using Python.Core.Expressions;
 
 namespace Python.Parser
 {
+    // TODO:
+    // lists, dictionaries, keyword handling, object references, formatted, bytes, int, str
+    /*
+        And, As, Assert, Async, Await, Break, Class, Continue, Def, Del,
+        Elif, Else, Except, False, Finally, For, From, Global, If (done), Import,
+        In, Is, Lambda, None, Nonlocal, Not, Or, Pass, Raise, Return, True,
+        Try, While, With, Yield, Case, Match
+     */
+    // in-progress: code block parsing recursively
     public class PythonParser : Parser
     {
         private IEnumerable<Keyword> longestKeywords;
@@ -23,11 +32,23 @@ namespace Python.Parser
         public Script Parse()
         {
             Script script = new Script();
-            /*while (Position < Tokens.Count)
+            int start = 0;
+            while (start < Tokens.Count)
             {
-                
-            }*/
-            script.Statements.Add(ParseExpression(0, Tokens.Count));
+                if (Tokens[start].Type == TokenType.EndOfExpression)
+                {
+                    // ignore blank lines
+                    start++;
+                    continue;
+                }
+                int startOfBlock = FindNext(TokenType.BeginBlock, start);
+                int endOfLine = FindNext(TokenType.EndOfExpression, start);
+                if (endOfLine < startOfBlock)
+                {
+                    script.Statements.Add(ParseExpression(start, endOfLine));
+                }
+                start = endOfLine + 1;
+            }
             return script;
         }
         private void AddIndent(int value)
@@ -40,26 +61,6 @@ namespace Python.Parser
             {
                 indents[currentIndent] = value;
             }
-        }
-        public ConditionalCodeBlock ParseConditionalCodeBlock(Expression condition, ConditionalType type)
-        {
-            ConditionalCodeBlock codeBlock = new ConditionalCodeBlock()
-            {
-                Condition = condition
-            };
-            Token possibleTab = Tokens[Position];
-            if (currentIndent >= indents.Count)
-            {
-                indents.Add(possibleTab.Count);
-            }
-            else
-            {
-                indents[currentIndent] = possibleTab.Count;
-            }
-            Advance();
-
-            //Console.WriteLine(Enum.GetName(typeof(TokenType), possibleTab.Type) + " " + possibleTab.Count);
-            return codeBlock;
         }
         public Expression ParseStatement()
         {
@@ -78,14 +79,27 @@ namespace Python.Parser
             Token nextToken = Tokens[startPos + 1];
             if (token.Type == TokenType.Keyword)
             {
+                ConditionalType? type = null;
                 if (token.Value == Keyword.If.Value)
+                {
+                    type = ConditionalType.If;
+                }
+                if (token.Value == Keyword.Elif.Value)
+                {
+                    type = ConditionalType.Elif;
+                }
+                if (token.Value == Keyword.Else.Value)
+                {
+                    type = ConditionalType.Else;
+                }
+                if (type.HasValue)
                 {
                     int endOfCondition = FindNext(TokenType.BeginBlock, startPos + 1);
                     Expression condition = ParseExpression(startPos + 1, endOfCondition);
                     ConditionalCodeBlock ifBlock = new ConditionalCodeBlock
                     {
                         Condition = condition,
-                        Type = ConditionalType.If
+                        Type = type.Value
                     };
                     int blockStart = endOfCondition + 1 + 1; // skip the BeginBlock and EndOfExpression
                     bool inBlock = true;

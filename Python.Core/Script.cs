@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace Python.Core
 {
-    public class Script
+    public class Script : CodeBlock
     {
-        public List<Expression> Statements { get; set; } = new List<Expression>();
+
     }
 }

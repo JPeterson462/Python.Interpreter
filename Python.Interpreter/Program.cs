@@ -11,7 +11,7 @@ namespace Python.Interpreter
     {
         static void Main(string[] args)
         {
-            string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test1.py");
+            string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test7.py");
 
             PythonTokenizer tokenizer = new PythonTokenizer(source);
             List<Token> tokens = tokenizer.Consume();

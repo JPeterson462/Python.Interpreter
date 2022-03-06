@@ -45,5 +45,22 @@ namespace Python.Parser
             }
             return pos;
         }
+        public int FindEndOfRegion(TokenType nestedType, TokenType endOfNestedType, int start)
+        {
+            int end = start + 1, count = 1;
+            while (count > 0)
+            {
+                if (Tokens[end].Type == nestedType)
+                {
+                    count++;
+                }
+                if (Tokens[end].Type == endOfNestedType)
+                {
+                    count--;
+                }
+                end++;
+            }
+            return end;
+        }
     }
 }

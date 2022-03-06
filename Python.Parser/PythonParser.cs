@@ -112,6 +112,25 @@ namespace Python.Parser
                     return ifBlock;
                 }
             }
+            if (token.Type == TokenType.Variable && nextToken.Type == TokenType.BeginParameters)
+            {
+                // function call
+                int start = startPos + 2, end = FindEndOfRegion(TokenType.BeginParameters, TokenType.EndParameters, start);
+                return new FunctionExpression
+                {
+                    VariableName = token.Value,
+                    Parameters = new List<Expression>(new Expression[] { ParseExpression(start, end) })
+                };// FIXME multiple parameters
+            }
+            if (nextToken.Type == TokenType.EndParameters)
+            {
+                return new SimpleExpression
+                {
+                    Value = token.Value,
+                    IsConstant = token.Type == TokenType.String || token.Type == TokenType.Number,
+                    IsVariable = token.Type == TokenType.Variable
+                };
+            }
             if ((nextToken.Type == TokenType.BeginBlock || nextToken.Type == TokenType.EndOfExpression) &&
                 (token.Type == TokenType.String || token.Type == TokenType.Number || token.Type == TokenType.Variable))
             {
@@ -126,19 +145,7 @@ namespace Python.Parser
             {
                 if (token.Type == TokenType.BeginParameters)
                 {
-                    int start = Position, end = start + 1, parenthesesCount = 1;
-                    while (parenthesesCount > 0)
-                    {
-                        if (Tokens[end].Type == TokenType.BeginParameters)
-                        {
-                            parenthesesCount++;
-                        }
-                        if (Tokens[end].Type == TokenType.EndParameters)
-                        {
-                            parenthesesCount--;
-                        }
-                        end++;
-                    }
+                    int start = startPos, end = FindEndOfRegion(TokenType.BeginParameters, TokenType.EndParameters, start);
                     Expression leftHandExpression = ParseExpression(start + 1, end - 1);
                     if (end == endPos)
                     {

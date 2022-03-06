@@ -116,13 +116,51 @@ namespace Python.Parser
             {
                 // function call
                 int start = startPos + 2, end = FindEndOfRegion(TokenType.BeginParameters, TokenType.EndParameters, start);
+                List<Expression> parameters = new List<Expression>();
+                int parameterStart = start;
+                while (parameterStart < end)
+                {
+                    int parameterEnd = parameterStart + 1, paramCount = 0, bracketCount = 0, braceCount = 0;
+                    while (parameterEnd < end && ((paramCount > 0 || bracketCount > 0 || braceCount > 0) ||
+                        (Tokens[parameterEnd].Type != TokenType.ElementSeparator && Tokens[parameterEnd].Type != TokenType.EndParameters)))
+                    {
+                        // read until the end of the parameter, making sure any opened parentheses/braces/brackets are closed
+                        if (Tokens[parameterEnd].Type == TokenType.BeginParameters)
+                        {
+                            paramCount++;
+                        }
+                        if (Tokens[parameterEnd].Type == TokenType.EndParameters)
+                        {
+                            paramCount--;
+                        }
+                        if (Tokens[parameterEnd].Type == TokenType.DictionaryStart)
+                        {
+                            braceCount++;
+                        }
+                        if (Tokens[parameterEnd].Type == TokenType.DictionaryEnd)
+                        {
+                            braceCount++;
+                        }
+                        if (Tokens[parameterEnd].Type == TokenType.BeginList)
+                        {
+                            bracketCount++;
+                        }
+                        if (Tokens[parameterEnd].Type == TokenType.EndList)
+                        {
+                            bracketCount++;
+                        }
+                        parameterEnd++;
+                    }
+                    parameters.Add(ParseExpression(parameterStart, parameterEnd));
+                    parameterStart = parameterEnd + 1;
+                }
                 return new FunctionExpression
                 {
                     VariableName = token.Value,
-                    Parameters = new List<Expression>(new Expression[] { ParseExpression(start, end) })
-                };// FIXME multiple parameters
+                    Parameters = parameters
+                };
             }
-            if (nextToken.Type == TokenType.EndParameters)
+            if (startPos + 1 == endPos)
             {
                 return new SimpleExpression
                 {

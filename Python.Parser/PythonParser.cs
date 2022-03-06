@@ -7,7 +7,7 @@ using Python.Core.Expressions;
 namespace Python.Parser
 {
     // TODO:
-    // lists, dictionaries, keyword handling, object references, formatted, bytes, int, str, complex setters, decomposing tuples
+    // lists, dictionaries, keyword handling, object references, formatted, bytes, int, str, complex setters, decomposing tuples, ternary operators
     /*
         And, As, Assert, Async, Await, Break, Class, Continue, Def, Del,
         Elif, Else, Except, False, Finally, For, From, Global, If (done), Import,

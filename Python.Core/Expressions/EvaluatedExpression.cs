@@ -5,6 +5,7 @@ namespace Python.Core.Expressions
     {
         public Expression LeftHandValue { get; set; }
         public Operator Operator { get; set; }
+        public Keyword KeywordOperator { get; set; }
         public Expression RightHandValue { get; set; }
     }
 }

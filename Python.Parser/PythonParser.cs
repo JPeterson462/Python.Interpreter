@@ -144,6 +144,79 @@ namespace Python.Parser
             int endOfExpression = FindNext(TokenType.EndOfExpression);
             return ParseExpression(Position, endOfExpression);
         }
+        #region expression handling
+        private Expression ParseFunctionCall(Token token, int start, int end)
+        {
+            List<Expression> parameters = new List<Expression>();
+            int parameterStart = start;
+            while (parameterStart < end)
+            {
+                int parameterEnd = parameterStart + 1, paramCount = 0, bracketCount = 0, braceCount = 0;
+                while (parameterEnd < end && ((paramCount > 0 || bracketCount > 0 || braceCount > 0) ||
+                    (Tokens[parameterEnd].Type != TokenType.ElementSeparator && Tokens[parameterEnd].Type != TokenType.EndParameters)))
+                {
+                    // read until the end of the parameter, making sure any opened parentheses/braces/brackets are closed
+                    if (Tokens[parameterEnd].Type == TokenType.BeginParameters)
+                    {
+                        paramCount++;
+                    }
+                    if (Tokens[parameterEnd].Type == TokenType.EndParameters)
+                    {
+                        paramCount--;
+                    }
+                    if (Tokens[parameterEnd].Type == TokenType.DictionaryStart)
+                    {
+                        braceCount++;
+                    }
+                    if (Tokens[parameterEnd].Type == TokenType.DictionaryEnd)
+                    {
+                        braceCount++;
+                    }
+                    if (Tokens[parameterEnd].Type == TokenType.BeginList)
+                    {
+                        bracketCount++;
+                    }
+                    if (Tokens[parameterEnd].Type == TokenType.EndList)
+                    {
+                        bracketCount++;
+                    }
+                    parameterEnd++;
+                }
+                parameters.Add(ParseExpression(parameterStart, parameterEnd));
+                parameterStart = parameterEnd + 1;
+            }
+            return new FunctionExpression
+            {
+                VariableName = token.Value,
+                Parameters = parameters
+            };
+        }
+        private Expression ParseSimpleValue(Token token)
+        {
+            return new SimpleExpression
+            {
+                Value = token.Value,
+                IsConstant = token.Type == TokenType.String || token.Type == TokenType.Number,
+                IsVariable = token.Type == TokenType.Variable
+            };
+        }
+        private Expression ParseStatement(int start, int end, int endPos, bool isLeftHandSimple)
+        {
+            Expression leftHandExpression = isLeftHandSimple ? ParseSimpleValue(Tokens[start]) : ParseExpression(start , end - 1);
+            if (end == endPos)
+            {
+                return leftHandExpression;
+            }
+            Operator op = new Operator(Tokens[end].Value);
+            Expression rightHandExpression = ParseExpression(end + 1, endPos);
+            return new EvaluatedExpression
+            {
+                LeftHandValue = leftHandExpression,
+                Operator = op,
+                RightHandValue = rightHandExpression
+            };
+        }
+        #endregion
         public Expression ParseExpression(int startPos, int endPos)
         {
             Token token = Tokens[startPos];
@@ -156,104 +229,27 @@ namespace Python.Parser
             {
                 // function call
                 int start = startPos + 2, end = FindEndOfRegion(TokenType.BeginParameters, TokenType.EndParameters, start);
-                List<Expression> parameters = new List<Expression>();
-                int parameterStart = start;
-                while (parameterStart < end)
-                {
-                    int parameterEnd = parameterStart + 1, paramCount = 0, bracketCount = 0, braceCount = 0;
-                    while (parameterEnd < end && ((paramCount > 0 || bracketCount > 0 || braceCount > 0) ||
-                        (Tokens[parameterEnd].Type != TokenType.ElementSeparator && Tokens[parameterEnd].Type != TokenType.EndParameters)))
-                    {
-                        // read until the end of the parameter, making sure any opened parentheses/braces/brackets are closed
-                        if (Tokens[parameterEnd].Type == TokenType.BeginParameters)
-                        {
-                            paramCount++;
-                        }
-                        if (Tokens[parameterEnd].Type == TokenType.EndParameters)
-                        {
-                            paramCount--;
-                        }
-                        if (Tokens[parameterEnd].Type == TokenType.DictionaryStart)
-                        {
-                            braceCount++;
-                        }
-                        if (Tokens[parameterEnd].Type == TokenType.DictionaryEnd)
-                        {
-                            braceCount++;
-                        }
-                        if (Tokens[parameterEnd].Type == TokenType.BeginList)
-                        {
-                            bracketCount++;
-                        }
-                        if (Tokens[parameterEnd].Type == TokenType.EndList)
-                        {
-                            bracketCount++;
-                        }
-                        parameterEnd++;
-                    }
-                    parameters.Add(ParseExpression(parameterStart, parameterEnd));
-                    parameterStart = parameterEnd + 1;
-                }
-                return new FunctionExpression
-                {
-                    VariableName = token.Value,
-                    Parameters = parameters
-                };
+                return ParseFunctionCall(token, start, end);
             }
             if (startPos + 1 == endPos)
             {
-                return new SimpleExpression
-                {
-                    Value = token.Value,
-                    IsConstant = token.Type == TokenType.String || token.Type == TokenType.Number,
-                    IsVariable = token.Type == TokenType.Variable
-                };
+                return ParseSimpleValue(token);
             }
             if ((nextToken.Type == TokenType.BeginBlock || nextToken.Type == TokenType.EndOfExpression) &&
                 (token.Type == TokenType.String || token.Type == TokenType.Number || token.Type == TokenType.Variable))
             {
-                return new SimpleExpression
-                {
-                    Value = token.Value,
-                    IsConstant = token.Type == TokenType.String || token.Type == TokenType.Number,
-                    IsVariable = token.Type == TokenType.Variable
-                };
+                return ParseSimpleValue(token);
             }
             else
             {
                 if (token.Type == TokenType.BeginParameters)
                 {
                     int start = startPos, end = FindEndOfRegion(TokenType.BeginParameters, TokenType.EndParameters, start);
-                    Expression leftHandExpression = ParseExpression(start + 1, end - 1);
-                    if (end == endPos)
-                    {
-                        return leftHandExpression;
-                    }
-                    Operator op = new Operator(Tokens[end].Value);
-                    Expression rightHandExpression = ParseExpression(end + 1, endPos);
-                    return new EvaluatedExpression
-                    {
-                        LeftHandValue = leftHandExpression,
-                        Operator = op,
-                        RightHandValue = rightHandExpression
-                    };
+                    return ParseStatement(start + 1, end, endPos, false);
                 }
                 else
                 {
-                    Expression leftHandExpression = new SimpleExpression
-                    {
-                        Value = token.Value,
-                        IsConstant = token.Type == TokenType.String || token.Type == TokenType.Number,
-                        IsVariable = token.Type == TokenType.Variable
-                    };
-                    Operator op = new Operator(Tokens[startPos + 1].Value);
-                    Expression rightHandExpression = ParseExpression(startPos + 2, endPos);
-                    return new EvaluatedExpression
-                    {
-                        LeftHandValue = leftHandExpression,
-                        Operator = op,
-                        RightHandValue = rightHandExpression
-                    };
+                    return ParseStatement(startPos, startPos + 1, endPos, true);
                 }
             }
         }

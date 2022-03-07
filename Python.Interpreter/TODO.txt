@@ -1,0 +1,16 @@
+﻿- while loop
+- for loop
+- array definition
+- array element accessor
+- dictionary definition
+- dictionary element accessor
+- keyword operators
+- formatted strings
+- bytes strings
+- ternary operators
+- object references
+- int and str
+- type hints
+- complex setters
+- tuple decomposition
+- function definitions

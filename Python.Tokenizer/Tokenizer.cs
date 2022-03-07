@@ -26,6 +26,14 @@ namespace Python.Tokenizer
                 Token t = NextToken();
                 if (t != null)
                 {
+                    if (t.Type == TokenType.Comment)
+                    {
+                        tokens.Add(new Token
+                        {
+                            Type = TokenType.EndOfExpression,
+                            Value = null
+                        });
+                    }
                     tokens.Add(t);
                     if (t.Type != TokenType.Comment)
                     {

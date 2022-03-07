@@ -86,6 +86,14 @@ namespace Python.Parser
                     {
                         type = ConditionalType.Else;
                     }
+                    if (token.Value == Keyword.While.Value)
+                    {
+                        type = ConditionalType.While;
+                    }
+                    if (token.Value == Keyword.For.Value)
+                    {
+                        type = ConditionalType.For;
+                    }
                     if (type.HasValue)
                     {
                         int endOfCondition = FindNext(TokenType.BeginBlock, startPos + 1);

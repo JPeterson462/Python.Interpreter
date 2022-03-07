@@ -221,16 +221,13 @@ namespace Python.Parser
         {
             Token token = Tokens[startPos];
             Token nextToken = Tokens[startPos + 1];
-            /*if (token.Type == TokenType.Keyword)
-            {
-                
-            }*/
+            // function call
             if (token.Type == TokenType.Variable && nextToken.Type == TokenType.BeginParameters)
             {
-                // function call
                 int start = startPos + 2, end = FindEndOfRegion(TokenType.BeginParameters, TokenType.EndParameters, start);
                 return ParseFunctionCall(token, start, end);
             }
+            // simple value
             if (startPos + 1 == endPos)
             {
                 return ParseSimpleValue(token);
@@ -240,18 +237,9 @@ namespace Python.Parser
             {
                 return ParseSimpleValue(token);
             }
-            else
-            {
-                if (token.Type == TokenType.BeginParameters)
-                {
-                    int start = startPos, end = FindEndOfRegion(TokenType.BeginParameters, TokenType.EndParameters, start);
-                    return ParseStatement(start + 1, end, endPos, false);
-                }
-                else
-                {
-                    return ParseStatement(startPos, startPos + 1, endPos, true);
-                }
-            }
+            // operation
+
+            return ParseStatement(startPos, startPos + 1, endPos, true);
         }
     }
 }

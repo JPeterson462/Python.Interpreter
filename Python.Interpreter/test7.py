@@ -5,7 +5,7 @@ if a > 10:
 
 b = 10
 
-while a > 0:
+while a - b > 0:
     a -= 1
 
 print(a)

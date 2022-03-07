@@ -46,7 +46,7 @@ namespace Python.Tokenizer
                     Count = end - start
                 };
             }
-            if (GetCurrentCharacter() == '\n')
+            if (GetCurrentCharacter() == '\n' || GetCurrentCharacter() == ';')
             {
                 Advance();
                 return new Token

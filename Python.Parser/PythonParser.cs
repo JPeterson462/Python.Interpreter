@@ -30,6 +30,11 @@ namespace Python.Parser
         }
         public Script Parse()
         {
+
+            return null;
+        }
+        /*public Script Parse()
+        {
             Script script = new Script
             {
                 Statements = ParseCodeBlock(0, Tokens.Count, 0).Statements
@@ -237,9 +242,15 @@ namespace Python.Parser
             {
                 return ParseSimpleValue(token);
             }
-            // operation
+            // operations
+            // 1. parentheses
+            if (token.Type == TokenType.BeginParameters)
+            {
 
+            }
+
+            // fallback to basic operation parsing
             return ParseStatement(startPos, startPos + 1, endPos, true);
-        }
+        }*/
     }
 }

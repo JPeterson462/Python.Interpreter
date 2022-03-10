@@ -13,10 +13,12 @@ namespace Python.Parser
     {
         public OperationSubParser OperationSubParser { get; set; }
         public AtomSubParser AtomSubParser { get; set; }
+        public LambdaSubParser LambdaSubParser { get; set; }
         public PythonParser(List<Token> tokens) : base(tokens)
         {
             OperationSubParser = new OperationSubParser(this);
             AtomSubParser = new AtomSubParser(this);
+            LambdaSubParser = new LambdaSubParser(this);
         }
         // statements: statement+ 
         public Script Parse()
@@ -127,10 +129,28 @@ namespace Python.Parser
         //| lambdef
         public Expression ParseExpression()
         {
-            // FIXME not complete
-            Expression expression = OperationSubParser.ParseDisjunction();
-
-            return expression;
+            if (Peek().Value == Keyword.Lambda.Value)
+            {
+                return LambdaSubParser.ParseLambdef();
+            }
+            else
+            {
+                Expression expression = OperationSubParser.ParseDisjunction();
+                if (Peek().Value == Keyword.If.Value)
+                {
+                    Advance();
+                    Expression condition = OperationSubParser.ParseDisjunction();
+                    Accept(Keyword.Else.Value);
+                    Advance();
+                    return new TernaryExpression
+                    {
+                        Condition = condition,
+                        TrueCase = expression,
+                        FalseCase = ParseExpression()
+                    };
+                }
+                return expression;
+            }
         }
         public Expression ParseStarNamedExpression()
         {
@@ -148,6 +168,13 @@ namespace Python.Parser
             {
                 return ParseNamedExpression();
             }
+        }
+        // default: '=' expression
+        public Expression ParseDefault()
+        {
+            Accept("=");
+            Advance();
+            return ParseExpression();
         }
     }
 }

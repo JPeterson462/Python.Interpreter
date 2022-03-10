@@ -5,7 +5,7 @@ namespace Python.Core.Expressions
 {
     public enum CollectionType
     {
-        List, Tuple, GeneratedList
+        List, Tuple, GeneratedList, Unknown
     }
     public class CollectionExpression : Expression
     {

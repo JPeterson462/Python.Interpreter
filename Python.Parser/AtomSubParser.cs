@@ -24,6 +24,29 @@ namespace Python.Parser
 
             throw new NotImplementedException();
         }
+        public Expression ParseYieldExpr()
+        {
+            Parser.Accept(Keyword.Yield.Value);
+            Parser.Advance();
+
+            if (Parser.Peek().Value == Keyword.From.Value)
+            {
+                Parser.Accept(Keyword.From.Value);
+                Parser.Advance();
+
+                return new YieldExpression
+                {
+                    CollectionExpression = Parser.ParseExpression()
+                };
+            }
+            else
+            {
+                return new YieldExpression
+                {
+                    Expressions = (Parser.ParseStarExpressions() as CollectionExpression).Elements
+                };
+            }
+        }
         public Expression ParseAtom()
         {
             Token token = Parser.Peek();
@@ -63,14 +86,43 @@ namespace Python.Parser
                     dictcomp:
                         | '{' kvpair for_if_clauses '}' 
                  */
-                if(token.Type == TokenType.BeginParameters)
+                if(token.Type == TokenType.BeginParameters) // (
                 {
                     Parser.Advance();
+                    Expression element = null;
+if (Parser.Peek().Value == Keyword.Yield.Value)
+                    {
+                        element = ParseYieldExpr();
+
+                        Parser.Accept(TokenType.EndParameters);
+                        Parser.Advance();
+
+                        return element;
+                    }
+                    else
+                    {
+                        // FIXME handling group that's not a star_named_expression, is this correct?
+                        element = Parser.ParseStarNamedExpression();
+                    }
+                    List<Expression> elements = new List<Expression>();
+                    elements.Add(element);
+                    while (Parser.Peek().Value == ",")
+                    {
+                        Parser.Advance();
+
+                    }
+                    element = new CollectionExpression
+                    {
+                        Elements = elements,
+                        Type = CollectionType.Tuple
+                    };
 
                     Parser.Accept(TokenType.EndParameters);
                     Parser.Advance();
+
+                    return element;
                 }
-                else if (token.Type == TokenType.BeginList)
+                else if (token.Type == TokenType.BeginList) // [
                 {
                     Parser.Advance();
                     CollectionExpression collection = new CollectionExpression
@@ -80,7 +132,7 @@ namespace Python.Parser
                     Expression element = Parser.ParseStarNamedExpression();
                     if (Parser.Peek().Value == Keyword.Async.Value || Parser.Peek().Value == Keyword.For.Value)
                     {
-
+                        // FIXME implement
                     }
                     else
                     {
@@ -97,9 +149,11 @@ namespace Python.Parser
                     Parser.Advance();
                     return collection;
                 }
-                else if (token.Type == TokenType.DictionaryStart)
+                else if (token.Type == TokenType.DictionaryStart) // {
                 {
                     Parser.Advance();
+
+                    // FIXME implement
 
                     Parser.Accept(TokenType.DictionaryEnd);
                     Parser.Advance();

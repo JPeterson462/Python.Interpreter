@@ -85,14 +85,52 @@ namespace Python.Parser
                 RightHandValue = ex
             };
         }
+        // star_expressions:
+        // | star_expression(',' star_expression )+ [','] 
+        // | star_expression ',' 
+        // | star_expression
+        public Expression ParseStarExpressions()
+        {
+            Expression expression = ParseStarExpression();
+            List<Expression> expressions = new List<Expression>();
+            while (Peek().Value == ",")
+            {
+                Advance();
+                expressions.Add(ParseStarExpression());
+            }
+            return new CollectionExpression
+            {
+                Elements = expressions,
+                Type = CollectionType.Unknown
+            };
+        }
+        //star_expression:
+        // | '*' bitwise_or 
+        // | expression
+        public Expression ParseStarExpression()
+        {
+            if (Peek().Value == Operator.Multiply.Value)
+            {
+                Advance();
+                return new EvaluatedExpression
+                {
+                    LeftHandValue = null,
+                    Operator = Operator.Multiply,
+                    RightHandValue = OperationSubParser.ParseBitwiseOr()
+                };
+            }
+            return ParseExpression();
+        }
         //expression:
         //| disjunction 'if' disjunction 'else' expression 
         //| disjunction
         //| lambdef
         public Expression ParseExpression()
         {
+            // FIXME not complete
+            Expression expression = OperationSubParser.ParseDisjunction();
 
-            return null;
+            return expression;
         }
         public Expression ParseStarNamedExpression()
         {

@@ -13,6 +13,10 @@ namespace Python.Interpreter
         {
             // 1. 1 + 2 * 3
             Expression e1 = ParsingUnitTest("1 + 2 * 3\n").OperationSubParser.ParseSum();
+            // 2. (3 + 4) * 2
+            Expression e2 = ParsingUnitTest("(3 + 4) * 2\n").OperationSubParser.ParseSum();
+            // 3. [1, 2, 3]
+            Expression e3 = ParsingUnitTest("[1, 2, 3]\n").AtomSubParser.ParseAtom();
 
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
 

@@ -75,11 +75,89 @@ namespace Python.Parser
                 next == Operator.LessThan.Value || next == Operator.GreaterThan.Value ||
                 next == Keyword.Not.Value || next == Keyword.In.Value || next == Keyword.Is.Value)
             {
-                throw new NotImplementedException();
+                Expression ex = ParseCompareOpBitwiseOrPair();
+                (ex as EvaluatedExpression).LeftHandValue = expression;
+                next = Parser.Peek().Value;
+                while (next == Operator.EqualTo.Value || next == Operator.NotEqualTo.Value ||
+                    next == Operator.LessThanOrEqualTo.Value || next == Operator.GreaterThanOrEqualTo.Value ||
+                    next == Operator.LessThan.Value || next == Operator.GreaterThan.Value ||
+                    next == Keyword.Not.Value || next == Keyword.In.Value || next == Keyword.Is.Value)
+                {
+                    Expression lefthand = ex;
+                    ex = ParseCompareOpBitwiseOrPair();
+                    (ex as EvaluatedExpression).LeftHandValue = lefthand;
+                    next = Parser.Peek().Value;
+                }
+                return ex;
             }
             else
             {
                 return expression;
+            }
+        }
+        public Expression ParseCompareOpBitwiseOrPair()
+        {
+            string next = Parser.Peek().Value;
+            Operator op = null;
+            Keyword kw = null;
+            switch (next)
+            {
+                case "==":
+                    op = Operator.EqualTo;
+                    break;
+                case "!=":
+                    op = Operator.NotEqualTo;
+                    break;
+                case "<=":
+                    op = Operator.LessThanOrEqualTo;
+                    break;
+                case ">=":
+                    op = Operator.GreaterThanOrEqualTo;
+                    break;
+                case "<":
+                    op = Operator.LessThan;
+                    break;
+                case ">":
+                    op = Operator.GreaterThan;
+                    break;
+                case "not":
+                    kw = Keyword.Not;
+                    break;
+                case "in":
+                    kw = Keyword.In;
+                    break;
+                case "is":
+                    kw = Keyword.Is;
+                    break;
+            }
+            // assumption: kw or op has a value
+            Parser.Advance();
+            if (kw == Keyword.Is && Parser.Peek().Value == Keyword.Not.Value)
+            {
+                Parser.Advance();
+                return new EvaluatedExpression
+                {
+                    LeftHandValue = null,
+                    Operator = op,
+                    KeywordOperator = kw,
+                    RightHandValue = new EvaluatedExpression
+                    {
+                        LeftHandValue = null,
+                        Operator = null,
+                        KeywordOperator = Keyword.Not,
+                        RightHandValue = ParseBitwiseOr()
+                    }
+                };
+            }
+            else
+            {
+                return new EvaluatedExpression
+                {
+                    LeftHandValue = null,
+                    Operator = op,
+                    KeywordOperator = kw,
+                    RightHandValue = ParseBitwiseOr()
+                };
             }
         }
         // FIXME probably going to have to reverse any recursion for operator precedence L-to-R

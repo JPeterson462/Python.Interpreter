@@ -53,7 +53,8 @@ namespace Python.Parser
                 if (Parser.Peek().Value == ",")
                 {
                     Parser.Advance();
-
+                    Expression firstParam = ParseLambdaParamNoDefault();
+                    
                 }
                 else
                 {

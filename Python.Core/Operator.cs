@@ -46,7 +46,7 @@ namespace Python.Core
             Assignment
         };
 
-        public string Value { get; set; }
+        public readonly string Value;
         public int Length => Value.Length;
         public Operator(string value)
         {

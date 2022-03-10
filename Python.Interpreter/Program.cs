@@ -19,6 +19,8 @@ namespace Python.Interpreter
             Expression e3 = ParsingUnitTest("[1, 2, 3]\n").AtomSubParser.ParseAtom();
             // 4. 1 if True else 0
             Expression e4 = ParsingUnitTest("1 if True else 0\n").ParseExpression();
+            // 5. a > b
+            Expression e5 = ParsingUnitTest("a > b\n").ParseExpression();
 
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
 

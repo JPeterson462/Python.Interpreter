@@ -11,7 +11,10 @@ namespace Python.Interpreter
     {
         static void Main(string[] args)
         {
-            string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test7.py");
+            // 1. 1 + 2 * 3
+            Expression e1 = ParsingUnitTest("1 + 2 * 3\n").OperationSubParser.ParseSum();
+
+            string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
 
             PythonTokenizer tokenizer = new PythonTokenizer(source);
             List<Token> tokens = tokenizer.Consume();
@@ -44,6 +47,9 @@ namespace Python.Interpreter
                 Console.WriteLine("value: " + t.Value);
             }
         }
-
+        public static PythonParser ParsingUnitTest(string source)
+        {
+            return new PythonParser(new PythonTokenizer(source).Consume());
+        }
     }
 }

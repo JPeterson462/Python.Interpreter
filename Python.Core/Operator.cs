@@ -32,8 +32,9 @@ namespace Python.Core
         public static readonly Operator BitwiseAndSet = new Operator("&=");
         public static readonly Operator BitwiseOrSet = new Operator("|=");
         public static readonly Operator BitwiseXorSet = new Operator("^=");
+        public static readonly Operator Assignment = new Operator(":=");
 
-        public static readonly char[] CharacterSet = "+-*/%=!<>&|~^".ToCharArray();
+        public static readonly char[] CharacterSet = "+-*/%=!<>&|~^:".ToCharArray();
 
         public static readonly Operator[] ALL = new Operator[]
         {
@@ -41,7 +42,8 @@ namespace Python.Core
             EqualTo, Set, NotEqualTo, LessThan, GreaterThan, LessThanOrEqualTo,
             GreaterThanOrEqualTo, AddSet, SubtractSet, MultiplySet, DivideSet,
             LeftShift, RightShift, BitwiseAnd, BitwiseOr, BitwiseNot, BitwiseXor,
-            LeftShiftSet, RightShiftSet, BitwiseAndSet, BitwiseOrSet, BitwiseXorSet
+            LeftShiftSet, RightShiftSet, BitwiseAndSet, BitwiseOrSet, BitwiseXorSet,
+            Assignment
         };
 
         public string Value { get; set; }

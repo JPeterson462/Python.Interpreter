@@ -11,71 +11,105 @@ namespace Python.Parser
     /// </summary>
     public class PythonParser : Parser
     {
+        public OperationSubParser OperationSubParser { get; set; }
+        public AtomSubParser AtomSubParser { get; set; }
         public PythonParser(List<Token> tokens) : base(tokens)
         {
-
+            OperationSubParser = new OperationSubParser(this);
+            AtomSubParser = new AtomSubParser(this);
         }
         // statements: statement+ 
-        public Script Parse(int start = 0, int end = -1)
+        public Script Parse()
         {
-            if (end < 0)
-            {
-                end = Tokens.Count;
-            }
             Script script = new Script();
-
+            while (Position < Tokens.Count)
+            {
+                script.Statements.Add(ParseStatement());
+            }
             return script;
         }
-        // statement: compound_stmt | simple_stmts
-        /*  simple_stmt:
-                | assignment
-                | star_expressions 
-                | return_stmt
-                | import_stmt
-                | raise_stmt
-                | 'pass' 
-                | del_stmt
-                | yield_stmt
-                | assert_stmt
-                | 'break' 
-                | 'continue' 
-                | global_stmt
-                | nonlocal_stmt
-            compound_stmt:
-                | function_def
-                | if_stmt
-                | class_def
-                | with_stmt
-                | for_stmt
-                | try_stmt
-                | while_stmt
-                | match_stmt
-         */
-        public Expression ParseStatement(int start, int end)
+        // statement: compound_stmt  | simple_stmts
+        public Expression ParseStatement()
         {
-            return null;
-        }
-        public Expression TryParseFunctionDefinition(int start, int end)
-        {
-            /*  function_def:
-                    | decorators function_def_raw 
-                    | function_def_raw
-
-                function_def_raw:
-                    | 'def' NAME '(' [params] ')' ['->' expression ] ':' [func_type_comment] block 
-                    | ASYNC 'def' NAME '(' [params] ')' ['->' expression ] ':' [func_type_comment] block 
-                func_type_comment:
-                    | NEWLINE TYPE_COMMENT &(NEWLINE INDENT)   # Must be followed by indented block
-                    | TYPE_COMMENT
-
-                decorators: ('@' named_expression NEWLINE )+ 
-             */
-            Token token = Tokens[start];
+            Token token = Peek();
+            // compound_stmt
             if (token.Type == TokenType.Decorator)
             {
 
             }
             return null;
+        }
+        // decorators: ('@' named_expression NEWLINE )+ 
+        public Expression ParseDecorator()
+        {
+            Accept(TokenType.Decorator);
+            Advance(1);
+            Expression ex = ParseNamedExpression();
+            Accept(TokenType.EndOfExpression);
+            return ex;
+        }
+        /*
+            named_expression:
+            | assignment_expression
+            | expression !':='
+         */
+        //  assignment_expression:
+        //  | NAME ':=' ~expression
+        public Expression ParseNamedExpression()
+        {
+            if (Peek(1).Value == Operator.Assignment.Value)
+            {
+                return ParseAssignmentExpression();
+            }
+            else
+            {
+                return ParseExpression();
+            }
+        }
+        public Expression ParseAssignmentExpression()
+        {
+            Token token = Peek();
+            string name = token.Value;
+            Advance();
+            Accept(Operator.Assignment.Value);
+            Advance();
+            Expression ex = ParseExpression();
+            return new EvaluatedExpression
+            {
+                LeftHandValue = new SimpleExpression
+                {
+                    Value = name,
+                    IsVariable = true
+                },
+                Operator = Operator.Assignment,
+                RightHandValue = ex
+            };
+        }
+        //expression:
+        //| disjunction 'if' disjunction 'else' expression 
+        //| disjunction
+        //| lambdef
+        public Expression ParseExpression()
+        {
+
+            return null;
+        }
+        public Expression ParseStarNamedExpression()
+        {
+            if (Peek().Value == Operator.Multiply.Value)
+            {
+                Advance();
+                return new EvaluatedExpression
+                {
+                    LeftHandValue = null,
+                    Operator = Operator.Multiply,
+                    RightHandValue = OperationSubParser.ParseBitwiseOr()
+                };
+            }
+            else
+            {
+                return ParseNamedExpression();
+            }
         }
     }
 }

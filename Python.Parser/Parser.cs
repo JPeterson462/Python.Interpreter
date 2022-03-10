@@ -14,28 +14,29 @@ namespace Python.Parser
             Tokens = tokens.Where(t => t.Type != TokenType.Comment).ToList(); // strip comments before parsing
             Position = 0;
         }
-        public void Advance()
+        public void RewindTo(int position)
         {
-            Position++;
+            Position = position;
         }
-        public void SkipNext(int n)
+        public void Advance(int n = 1)
         {
             Position += n;
         }
-        /*public List<Token> ReadUntil(TokenType type, bool consume = true)
+        public void Accept(TokenType type)
         {
-            List<Token> tokens = new List<Token>();
-            int pos = Position;
-            while (Tokens[pos].Type != type) {
-                tokens.Add(Tokens[pos]);
-                pos++;
-                if (consume)
-                {
-                    Advance();
-                }
+            if (Peek().Type != type)
+            {
+                ThrowSyntaxError(Position);
             }
-            return tokens;
-        }*/
+        }
+        public void Accept(string value)
+        {
+            if (Peek().Value != value)
+            {
+                ThrowSyntaxError(Position);
+            }
+        }
+        /*
         public int FindNext(TokenType type, int position = -1)
         {
             int pos = position >= 0 ? position : Position;
@@ -44,6 +45,19 @@ namespace Python.Parser
                 pos++;
             }
             return pos;
+        }
+        public bool Contains(string value, int start, int end)
+        {
+            int pos = start;
+            while (pos < end)
+            {
+                if (Tokens[pos].Value == value)
+                {
+                    return true;
+                }
+                pos++;
+            }
+            return false;
         }
         public int FindEndOfRegion(TokenType nestedType, TokenType endOfNestedType, int start)
         {
@@ -62,5 +76,14 @@ namespace Python.Parser
             }
             return end;
         }
+        */
+        public void ThrowSyntaxError(int position)
+        {
+            throw new Exception("Syntax error!");
+        }
+        public Token Peek(int n = 0)
+        {
+            return Tokens[Position + n];
+        }        
     }
 }

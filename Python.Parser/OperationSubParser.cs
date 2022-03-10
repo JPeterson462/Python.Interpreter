@@ -208,7 +208,7 @@ namespace Python.Parser
         }
         public Expression ParseShiftExpr()
         {
-            Expression expression = ParseSum();
+            Expression expression = ParsingUtils.FlipExpressionTree(ParseSum(), (op) => op == Operator.Add.Value || op == Operator.Subtract.Value);
             if (Parser.Peek().Value == Operator.LeftShift.Value)
             {
                 Parser.Advance();
@@ -233,7 +233,8 @@ namespace Python.Parser
         }
         public Expression ParseSum()
         {
-            Expression expression = ParseTerm();
+            Expression expression = ParsingUtils.FlipExpressionTree(ParseTerm(), (op) => op == Operator.Multiply.Value || op == Operator.Divide.Value
+                                                                                        || op == Operator.FloorDivide.Value || op == Operator.Modulus.Value);
             if (Parser.Peek().Value == Operator.Add.Value)
             {
                 Parser.Advance();
@@ -259,7 +260,8 @@ namespace Python.Parser
         }
         public Expression ParseTerm()
         {
-            Expression expression = ParseFactor();
+            Expression expression = ParsingUtils.FlipExpressionTree(ParseFactor(), (op) => op == Operator.Add.Value || op == Operator.Subtract.Value
+                                                                                    || op == Operator.BitwiseNot.Value);
             if (Parser.Peek().Value == Operator.Multiply.Value)
             {
                 Parser.Advance();
@@ -383,10 +385,33 @@ namespace Python.Parser
                 return ParsePrimary();
             }
         }
+        // primary:
+        // | primary '.' NAME 
+        // | primary genexp 
+        // | primary '(' [arguments] ')' 
+        // | primary '[' slices ']' 
+        // | atom
+        // FIXME probably going to need to reverse so it's evaluated L-to-R
         public Expression ParsePrimary()
         {
             Expression atom = Parser.AtomSubParser.ParseAtom();
+            string next = Parser.Peek().Value;
+            if (next == ".")
+            {
 
+            }
+            else if (next == "(")
+            {
+                
+            }
+            else if (next == "[")
+            {
+
+            }
+            else
+            {
+                // FIXME parse genexp or return atom
+            }
             //FIXME
             return atom;
         }

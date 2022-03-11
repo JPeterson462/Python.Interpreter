@@ -47,6 +47,18 @@ namespace Python.Parser
                 };
             }
         }
+        // t_primary:
+        //   | t_primary '.' NAME &t_lookahead 
+        //   | t_primary '[' slices ']' &t_lookahead 
+        //   | t_primary genexp &t_lookahead 
+        //   | t_primary '(' [arguments] ')' &t_lookahead 
+        //   | atom &t_lookahead
+        // t_lookahead: '(' | '[' | '.'
+        public Expression ParseTPrimary()
+        {
+            Expression ex = ParseAtom();
+            throw new NotImplementedException();
+        }
         public Expression ParseAtom()
         {
             Token token = Parser.Peek();

@@ -9,7 +9,7 @@ namespace Python.Core.Expressions
     }
     public class CollectionExpression : Expression
     {
-        public List<Expression> Elements { get; set; }
+        public List<Expression> Elements { get; set; } = new List<Expression>();
         public CollectionType Type { get; set; }
     }
 }

@@ -25,6 +25,14 @@ namespace Python.Interpreter
             Expression e6 = ParsingUnitTest("1 + 3 + 5\n").ParseExpression();
             // 7. 1 - 3 + 5
             Expression e7 = ParsingUnitTest("1 - 3 + 5\n").ParseExpression();
+            // 8. yield abc, otherval
+            Expression e8 = ParsingUnitTest("yield abc, otherval\n").OperatorSubParser.ParseSimpleStmt();// not working
+            // 9. pass
+            Expression e9 = ParsingUnitTest("pass\n").OperatorSubParser.ParseSimpleStmt();
+            // 10. raise Exception("msg")
+            Expression e10 = ParsingUnitTest("raise Exception(\"msg\")\n").OperatorSubParser.ParseSimpleStmt(); // not working
+            // 11. raise ex
+            Expression e11 = ParsingUnitTest("raise ex\n").OperatorSubParser.ParseSimpleStmt();
 
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
 

@@ -345,7 +345,7 @@ namespace Python.Tokenizer
             bool allowedPrefix = allowedVariablePrefixes.IndexOf(opening) >= 0;
             if (allowedPrefix)
             {
-                while (allowedVariableCharacters.IndexOf(Source[end]) >= 0)
+                while (end < Source.Length && allowedVariableCharacters.IndexOf(Source[end]) >= 0)
                 {
                     end++;
                 }
@@ -362,9 +362,9 @@ namespace Python.Tokenizer
             int start = Position, end = start + 1;
             char opening = GetCurrentCharacter();
             bool allowedPrefix = allowedNumberCharacters.IndexOf(opening) >= 0;
-            if (allowedPrefix)
+            if (allowedPrefix && opening != 'e') // can't start with an e
             {
-                while (allowedNumberCharacters.IndexOf(Source[end]) >= 0)
+                while (end < Source.Length && allowedNumberCharacters.IndexOf(Source[end]) >= 0)
                 {
                     Console.WriteLine($"CHAR: '{Source[end]}'");
                     end++;

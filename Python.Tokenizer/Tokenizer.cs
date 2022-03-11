@@ -85,7 +85,7 @@ namespace Python.Tokenizer
         }
         public void SkipWhitespace(bool tabsAsWhitespace = true)
         {
-            while (IsWhitespace(Source[Position], tabsAsWhitespace))
+            while (Position < Source.Length && IsWhitespace(Source[Position], tabsAsWhitespace))
             {
                 if (Source[Position] == '\n')
                 {

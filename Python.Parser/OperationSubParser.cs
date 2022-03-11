@@ -160,7 +160,6 @@ namespace Python.Parser
                 };
             }
         }
-        // FIXME probably going to have to reverse any recursion for operator precedence L-to-R
         public Expression ParseBitwiseOr()
         {
             Expression expression = ParseBitwiseXor();

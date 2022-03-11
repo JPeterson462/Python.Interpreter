@@ -14,11 +14,13 @@ namespace Python.Parser
         public OperationSubParser OperationSubParser { get; set; }
         public AtomSubParser AtomSubParser { get; set; }
         public LambdaSubParser LambdaSubParser { get; set; }
+        public OperatorSubParser OperatorSubParser { get; set; }
         public PythonParser(List<Token> tokens) : base(tokens)
         {
             OperationSubParser = new OperationSubParser(this);
             AtomSubParser = new AtomSubParser(this);
             LambdaSubParser = new LambdaSubParser(this);
+            OperatorSubParser = new OperatorSubParser(this);
         }
         // statements: statement+ 
         public Script Parse()
@@ -37,8 +39,9 @@ namespace Python.Parser
             // compound_stmt
             if (token.Type == TokenType.Decorator)
             {
-
+                throw new NotImplementedException();
             }
+
             return null;
         }
         // decorators: ('@' named_expression NEWLINE )+ 

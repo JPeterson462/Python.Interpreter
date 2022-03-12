@@ -39,6 +39,12 @@ namespace Python.Interpreter
             Expression e13 = ParsingUnitTest("from .bar import Bar\n").OperatorSubParser.ParseSimpleStmt();
             // 14. return a, b
             Expression e14 = ParsingUnitTest("return a, b\n").OperatorSubParser.ParseSimpleStmt();
+            // 15. 1:3
+            // 16. 1::-1
+            // 17. :2
+            Expression e15 = ParsingUnitTest("1:3\n").AtomSubParser.ParseSlices();
+            Expression e16 = ParsingUnitTest("1::-1\n").AtomSubParser.ParseSlices(); // not working
+            Expression e17 = ParsingUnitTest(":2\n").AtomSubParser.ParseSlices();
 
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
 

@@ -102,7 +102,7 @@ namespace Python.Parser
                 {
                     Parser.Advance();
                     Expression element = null;
-if (Parser.Peek().Value == Keyword.Yield.Value)
+                    if (Parser.Peek().Value == Keyword.Yield.Value)
                     {
                         element = ParseYieldExpr();
 
@@ -179,6 +179,153 @@ if (Parser.Peek().Value == Keyword.Yield.Value)
 
             throw new NotImplementedException();
         }
-
+        //single_target:
+        //    | single_subscript_attribute_target
+        //    | NAME 
+        //    | '(' single_target ')'
+        public Expression ParseSingleTarget()
+        {
+            Expression expression = ParseSingleSubscriptAttributeTarget();
+            if (expression == null)
+            {
+                if (Parser.Peek().Type == TokenType.BeginParameters || Parser.Peek().Value == "(")
+                {
+                    expression = ParseSingleTarget();
+                    Parser.Accept(TokenType.EndParameters);
+                    Parser.Advance();
+                }
+                else
+                {
+                    expression = new SimpleExpression
+                    {
+                        IsVariable = true,
+                        IsConstant = false,
+                        Value = Parser.OperatorSubParser.ParseName()
+                    };
+                }
+            }
+            return expression;
+        }
+        //single_subscript_attribute_target:
+        //    | t_primary '.' NAME !t_lookahead 
+        //    | t_primary '[' slices ']' !t_lookahead
+        public Expression ParseSingleSubscriptAttributeTarget()
+        {
+            int position = Parser.Position;
+            Expression primary = ParseTPrimary();
+            if (Parser.Peek().Type == TokenType.ObjectReference || Parser.Peek().Value == ".")
+            {
+                Parser.Advance();
+                string name = Parser.OperatorSubParser.ParseName();
+                DontAcceptTLookahead();
+                return new EvaluatedExpression
+                {
+                    LeftHandValue = primary,
+                    KeywordOperator = null,
+                    Operator = null,
+                    IsObjectReference = true,
+                    RightHandValue = new SimpleExpression
+                    {
+                        IsVariable = true,
+                        IsConstant = false,
+                        Value = name
+                    }
+                };
+            }
+            else if (Parser.Peek().Type == TokenType.BeginList || Parser.Peek().Value == "[")
+            {
+                Parser.Advance();
+                Expression slices = ParseSlices();
+                DontAcceptTLookahead();
+                return new EvaluatedExpression
+                {
+                    LeftHandValue = primary,
+                    KeywordOperator = null,
+                    Operator = null,
+                    IsArrayAccessor = true,
+                    RightHandValue = slices
+                };
+            }
+            else
+            {
+                Parser.RewindTo(position);
+                return null;
+            }
+        }
+        // t_lookahead: '(' | '[' | '.'
+        public void DontAcceptTLookahead()
+        {
+            Token next = Parser.Peek();
+            if (next.Type == TokenType.BeginParameters || next.Type == TokenType.BeginList || next.Type == TokenType.ObjectReference
+                || next.Value == "(" || next.Value == "[" || next.Value == ".")
+            {
+                Parser.ThrowSyntaxError(Parser.Position);
+            }
+        }
+        //    slices:
+        //    | slice !',' 
+        //    | ','.slice+ [',']
+        //    slice:
+        //    | [expression] ':' [expression] [':' [expression] ] 
+        //    | named_expression
+        public Expression ParseSlices()
+        {
+            CollectionExpression slices = new CollectionExpression
+            {
+                Type = CollectionType.Slices
+            };
+            Expression slice = ParseSlice();
+            slices.Elements.Add(slice);
+            while (Parser.Peek().Type == TokenType.ElementSeparator || Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+                slice = ParseSlice();
+                slices.Elements.Add(slice);
+            }
+            return slices;
+        }
+        public Expression ParseSlice()
+        {
+            int position = Parser.Position;
+            Expression start = IsColonNext() ? null : Parser.ParseExpression();
+            if (IsColonNext())
+            {
+                Parser.Advance();
+                Expression stop = IsColonNext() ? null : Parser.ParseExpression();
+                if (IsColonNext())
+                {
+                    Parser.Advance();
+                    Expression interval = Parser.ParseExpression();
+                    return new SliceExpression
+                    {
+                        Start = start,
+                        Stop = stop,
+                        Interval = interval
+                    };
+                }
+                else
+                {
+                    return new SliceExpression
+                    {
+                        Start = start,
+                        Stop = stop,
+                        Interval = null
+                    };
+                }
+            }
+            else
+            {
+                Parser.RewindTo(position);
+                return new SliceExpression
+                {
+                    Start = Parser.ParseNamedExpression(),
+                    IsExpression = true
+                };
+            }
+        }
+        public bool IsColonNext()
+        {
+            return Parser.Peek().Type == TokenType.BeginBlock || Parser.Peek().Value == ":";
+        }
     }
 }

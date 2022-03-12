@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Python.Core;
 using Python.Core.Expressions;
 namespace Python.Parser
@@ -196,8 +198,21 @@ namespace Python.Parser
                     return new RaiseExpression();
                 }
             }
-            //| import_stmt
-            //| return_stmt
+            if (next == Keyword.From.Value || next == Keyword.Import.Value)
+            {
+                return ParseImportStmt();
+            }
+            if (next == Keyword.Return.Value)
+            {
+                Parser.Advance();
+                return new OperatorExpression
+                {
+                    KeywordOperator = Keyword.Return,
+                    Operator = null,
+                    Expression = Parser.ParseStarExpressions()
+                };
+            }
+            // FIXME TODO
             //| star_expressions
             //assignment
 
@@ -217,6 +232,160 @@ namespace Python.Parser
         {
             // FIXME
             throw new NotImplementedException();
+        }
+        // import_stmt: import_name | import_from
+        // import_name: 'import' dotted_as_names
+        // # note below: the ('.' | '...') is necessary because '...' is tokenized as ELLIPSIS
+        // import_from:
+        //    | 'from' ('.' | '...')* dotted_name 'import' import_from_targets 
+        //    | 'from' ('.' | '...')+ 'import' import_from_targets
+        public Expression ParseImportStmt()
+        {
+            string next = Parser.Peek().Value;
+            Parser.Advance();
+            if (next == Keyword.Import.Value)
+            {
+                return new ImportExpression
+                {
+                    Imports = ParseDottedAsNames()
+                };
+            }
+            else if (next == Keyword.From.Value)
+            {
+                string fromPath = ParseImportFromPath();
+                Parser.Accept(Keyword.Import.Value);
+                Parser.Advance();
+                List<KeyValuePair<string, string>> targets = ParseImportFromTargets();
+                return new ImportExpression
+                {
+                    Imports = targets.Select(t => new KeyValuePair<string, string>(t.Key, fromPath + "." + t.Value)).ToList()
+                };
+            }
+            Parser.ThrowSyntaxError(Parser.Position);
+            return null; // won't get here
+        }
+        public string ParseImportFromPath()
+        {
+            string value = string.Empty;
+            // just grab all . characters (the tokenizer doesn't treat ELLIPSIS specially)
+            while (Parser.Peek().Type == TokenType.ObjectReference || Parser.Peek().Value == ".")
+            {
+                value += ".";
+                Parser.Advance();
+            }
+            if (Parser.Peek().Value != Keyword.Import.Value)
+            {
+                value += ParseDottedName();
+            }
+            return value;
+        }
+        //import_from_targets:
+        //    | '(' import_from_as_names[','] ')' 
+        //    | import_from_as_names !','
+        //    | '*'
+        public List<KeyValuePair<string, string>> ParseImportFromTargets()
+        {
+            List<KeyValuePair<string, string>> names;
+            if (Parser.Peek().Value == "*")
+            {
+                return new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>("*", "*")
+                };
+            }
+            if (Parser.Peek().Value == "(" || Parser.Peek().Type == TokenType.BeginParameters)
+            {
+                Parser.Advance();
+                names = ParseImportFromAsNames();
+                Parser.Accept(TokenType.EndParameters);
+                Parser.Advance();
+                return names;
+            }
+            names = ParseImportFromAsNames();
+            return names;
+        }
+        //import_from_as_names:
+        //    | ','.import_from_as_name+ 
+        public List<KeyValuePair<string, string>> ParseImportFromAsNames()
+        {
+            List<KeyValuePair<string, string>> imports = new List<KeyValuePair<string, string>>();
+            imports.Add(ParseImportFromAsName());
+            while (Parser.Peek().Value == "," || Parser.Peek().Type == TokenType.ElementSeparator)
+            {
+                Parser.Advance();
+                imports.Add(ParseImportFromAsName());
+            }
+            return imports;
+        }
+        //dotted_as_names:
+        //    | ','.dotted_as_name+ 
+        public List<KeyValuePair<string, string>> ParseDottedAsNames()
+        {
+            List<KeyValuePair<string, string>> imports = new List<KeyValuePair<string, string>>();
+            imports.Add(ParseDottedAsName());
+            while (Parser.Peek().Value == "," || Parser.Peek().Type == TokenType.ElementSeparator)
+            {
+                Parser.Advance();
+                imports.Add(ParseDottedAsName());
+            }
+            return imports;
+        }
+        //import_from_as_name:
+        //    | NAME['as' NAME]
+        public KeyValuePair<string, string> ParseImportFromAsName()
+        {
+            string importPath = ParseName();
+            if (Parser.Peek().Value == Keyword.As.Value)
+            {
+                Parser.Advance();
+                string importAlias = Parser.Peek().Value;
+                Parser.Advance();
+                return new KeyValuePair<string, string>(importAlias, importPath);
+            }
+            else
+            {
+                return new KeyValuePair<string, string>(importPath, importPath);
+            }
+        }
+        public string ParseName()
+        {
+            Parser.Accept(TokenType.Variable);
+            string name = Parser.Peek().Value;
+            Parser.Advance();
+            return name;
+        }
+        //dotted_as_name:
+        //    | dotted_name['as' NAME]
+        public KeyValuePair<string, string> ParseDottedAsName()
+        {
+            string importPath = ParseDottedName();
+            if (Parser.Peek().Value == Keyword.As.Value)
+            {
+                Parser.Advance();
+                string importAlias = Parser.Peek().Value;
+                Parser.Advance();
+                return new KeyValuePair<string, string>(importAlias, importPath);
+            }
+            else
+            {
+                return new KeyValuePair<string, string>(importPath, importPath);
+            }
+        }
+        //dotted_name:
+        //   | dotted_name '.' NAME 
+        //   | NAME
+        public string ParseDottedName()
+        {
+            Parser.Accept(TokenType.Variable);
+            string name = Parser.Peek().Value;
+            Parser.Advance();
+            while (Parser.Peek().Value == "." || Parser.Peek().Type == TokenType.ObjectReference)
+            {
+                Parser.Advance();
+                name += "." + Parser.Peek().Value;
+                Parser.Advance();
+            }
+            return name;
         }
     }
 }

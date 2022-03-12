@@ -33,6 +33,12 @@ namespace Python.Interpreter
             Expression e10 = ParsingUnitTest("raise Exception(\"msg\")\n").OperatorSubParser.ParseSimpleStmt(); // not working
             // 11. raise ex
             Expression e11 = ParsingUnitTest("raise ex\n").OperatorSubParser.ParseSimpleStmt();
+            // 12. import utils, sys.io as io
+            Expression e12 = ParsingUnitTest("import utils, sys.io as io\n").OperatorSubParser.ParseSimpleStmt();
+            // 13. from .bar import Bar
+            Expression e13 = ParsingUnitTest("from .bar import Bar\n").OperatorSubParser.ParseSimpleStmt();
+            // 14. return a, b
+            Expression e14 = ParsingUnitTest("return a, b\n").OperatorSubParser.ParseSimpleStmt();
 
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
 

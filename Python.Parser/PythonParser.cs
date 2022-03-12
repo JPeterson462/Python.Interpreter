@@ -98,7 +98,8 @@ namespace Python.Parser
         {
             Expression expression = ParseStarExpression();
             List<Expression> expressions = new List<Expression>();
-            while (Peek().Value == ",")
+            expressions.Add(expression);
+            while (Peek().Value == "," || Peek().Type == TokenType.ElementSeparator)
             {
                 Advance();
                 expressions.Add(ParseStarExpression());

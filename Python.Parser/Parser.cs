@@ -36,6 +36,13 @@ namespace Python.Parser
                 ThrowSyntaxError(Position);
             }
         }
+        public void DontAccept(string value)
+        {
+            if (Peek().Value == value)
+            {
+                ThrowSyntaxError(Position);
+            }
+        }
         /*
         public int FindNext(TokenType type, int position = -1)
         {

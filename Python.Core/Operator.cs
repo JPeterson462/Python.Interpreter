@@ -52,5 +52,26 @@ namespace Python.Core
         {
             Value = value;
         }
+
+        public bool Equals(object other)
+        {
+            if (other is Operator op)
+            {
+                if (other == null)
+                {
+                    return false;
+                }
+                return op.Value == Value;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public override string ToString()
+        {
+            return Value;
+        }
     }
 }

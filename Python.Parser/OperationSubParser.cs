@@ -356,6 +356,7 @@ namespace Python.Parser
             Expression primary = ParseAwaitPrimary();
             if (Parser.Peek().Value == Operator.Exponentiation.Value)
             {
+                Parser.Advance();
                 return new EvaluatedExpression
                 {
                     LeftHandValue = primary,
@@ -372,6 +373,7 @@ namespace Python.Parser
         {
             if (Parser.Peek().Value == Keyword.Await.Value)
             {
+                Parser.Advance();
                 return new EvaluatedExpression
                 {
                     LeftHandValue = null,

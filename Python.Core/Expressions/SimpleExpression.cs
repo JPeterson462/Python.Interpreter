@@ -11,5 +11,30 @@ namespace Python.Core.Expressions
         {
 
         }
+
+        public override bool Equals(object other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+            if (other is SimpleExpression expr)
+            {
+                if (!expr.Value.Equals(Value))
+                {
+                    return false;
+                }
+                return (expr.IsConstant == IsConstant && expr.IsVariable == IsVariable);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public override string ToString()
+        {
+            return $"{(IsConstant ? "constant ": "")}{(IsVariable ? "variable " : "")}{Value}";
+        }
     }
 }

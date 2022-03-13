@@ -65,5 +65,26 @@ namespace Python.Core
             IsBlockDefinition = blockDefinition;
             IsConditionalBlock = conditionalBlock;
         }
+
+        public bool Equals(object other)
+        {
+            if (other is Keyword kw)
+            {
+                if (other == null)
+                {
+                    return false;
+                }
+                return kw.Value == Value;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public override string ToString()
+        {
+            return $"{(IsBlockDefinition ? "block " : "")}{(IsConditionalBlock ? "conditional " : "")}{Value}";
+        }
     }
 }

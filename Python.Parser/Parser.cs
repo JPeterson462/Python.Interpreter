@@ -86,7 +86,7 @@ namespace Python.Parser
         */
         public void ThrowSyntaxError(int position)
         {
-            throw new Exception("Syntax error!");
+            throw new Exception("Syntax error! '" + Tokens[position].Value + "'");
         }
         public Token Peek(int n = 0)
         {

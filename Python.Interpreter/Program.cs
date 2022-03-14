@@ -11,7 +11,7 @@ namespace Python.Interpreter
     {
         static void Main(string[] args)
         {
-            // 1. 1 + 2 * 3
+         /*   // 1. 1 + 2 * 3
             Expression e1 = ParsingUnitTest("1 + 2 * 3\n").OperationSubParser.ParseSum();
             // 2. (3 + 4) * 2
             Expression e2 = ParsingUnitTest("(3 + 4) * 2\n").OperationSubParser.ParseSum();
@@ -44,7 +44,9 @@ namespace Python.Interpreter
             // 17. :2
             Expression e15 = ParsingUnitTest("1:3\n").AtomSubParser.ParseSlices();
             Expression e16 = ParsingUnitTest("1::-1\n").AtomSubParser.ParseSlices(); // not working
-            Expression e17 = ParsingUnitTest(":2\n").AtomSubParser.ParseSlices();
+            Expression e17 = ParsingUnitTest(":2\n").AtomSubParser.ParseSlices();*/
+            // 1 + 2 ** 3
+            Expression e18 = ParsingUnitTest("1 + 2 ** 3\n").OperationSubParser.ParseSum();
 
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
 

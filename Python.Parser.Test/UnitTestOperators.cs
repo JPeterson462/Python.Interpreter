@@ -75,5 +75,25 @@ namespace Python.Parser.Test
                 Assert.Fail($"{expected} vs {expr}");
             }
         }
+        [TestMethod]
+        public void TestAdditionAndExponentiation()
+        {
+            var expr = TestUtils.ParseExpression("1 + 2 ** 3").OperationSubParser.ParseSum();
+            var expected = new EvaluatedExpression
+            {
+                LeftHandValue = TestUtils.SimpleNumber(1),
+                Operator = Operator.Add,
+                RightHandValue = new EvaluatedExpression
+                {
+                    LeftHandValue = TestUtils.SimpleNumber(2),
+                    Operator = Operator.Exponentiation,
+                    RightHandValue = TestUtils.SimpleNumber(3)
+                }
+            };
+            if (!expected.Equals(expr))
+            {
+                Assert.Fail($"{expected} vs {expr}");
+            }
+        }
     }
 }

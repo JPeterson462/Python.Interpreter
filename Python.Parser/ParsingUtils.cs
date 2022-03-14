@@ -22,6 +22,11 @@ namespace Python.Parser
             List<Keyword> keywords = new List<Keyword>();
             List<Operator> operators = new List<Operator>();
             Expression ex = expression;
+            if (ex is EvaluatedExpression other && !acceptOperator(other.Operator?.Value ?? other.KeywordOperator?.Value))
+            {
+                // If there's no chain to flip, just result
+                return ex;
+            }
             while (ex is EvaluatedExpression eval && acceptOperator(eval.Operator?.Value ?? eval.KeywordOperator?.Value))
             {
                 tree.Add(eval.LeftHandValue);

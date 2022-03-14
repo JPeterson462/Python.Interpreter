@@ -237,11 +237,12 @@ namespace Python.Parser
             if (Parser.Peek().Value == Operator.Add.Value)
             {
                 Parser.Advance();
+                Expression sum = ParseSum();
                 return new EvaluatedExpression
                 {
                     LeftHandValue = expression,
                     Operator = Operator.Add,
-                    RightHandValue = ParseSum()
+                    RightHandValue = sum
                 };
             }
             if (Parser.Peek().Value == Operator.Subtract.Value)
@@ -357,11 +358,12 @@ namespace Python.Parser
             if (Parser.Peek().Value == Operator.Exponentiation.Value)
             {
                 Parser.Advance();
+                Expression factor = ParseFactor();
                 return new EvaluatedExpression
                 {
                     LeftHandValue = primary,
                     Operator = Operator.Exponentiation,
-                    RightHandValue = ParseFactor()
+                    RightHandValue = factor
                 };
             }
             else

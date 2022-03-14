@@ -45,8 +45,8 @@ namespace Python.Interpreter
             Expression e15 = ParsingUnitTest("1:3\n").AtomSubParser.ParseSlices();
             Expression e16 = ParsingUnitTest("1::-1\n").AtomSubParser.ParseSlices(); // not working
             Expression e17 = ParsingUnitTest(":2\n").AtomSubParser.ParseSlices();*/
-            // 1 + 2 ** 3
-            Expression e18 = ParsingUnitTest("1 + 2 ** 3\n").OperationSubParser.ParseSum();
+
+            Expression e18 = ParsingUnitTest("1 - 2 ** -2 + 3 * 4 // 2\n").OperationSubParser.ParseShiftExpr();
 
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
 

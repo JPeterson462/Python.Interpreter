@@ -207,7 +207,8 @@ namespace Python.Parser
         }
         public Expression ParseShiftExpr()
         {
-            Expression expression = ParsingUtils.FlipExpressionTree(ParseSum(), (op) => op == Operator.Add.Value || op == Operator.Subtract.Value);
+            Expression sum = ParseSum();
+            Expression expression = ParsingUtils.FlipExpressionTree(sum, (op) => op == Operator.Add.Value || op == Operator.Subtract.Value);
             if (Parser.Peek().Value == Operator.LeftShift.Value)
             {
                 Parser.Advance();
@@ -269,7 +270,7 @@ namespace Python.Parser
                 {
                     LeftHandValue = expression,
                     Operator = Operator.Multiply,
-                    RightHandValue = ParseFactor()
+                    RightHandValue = ParseTerm()
                 };
             }
             if (Parser.Peek().Value == Operator.Divide.Value)
@@ -279,7 +280,7 @@ namespace Python.Parser
                 {
                     LeftHandValue = expression,
                     Operator = Operator.Divide,
-                    RightHandValue = ParseFactor()
+                    RightHandValue = ParseTerm()
                 };
             }
             if (Parser.Peek().Value == Operator.FloorDivide.Value)
@@ -289,7 +290,7 @@ namespace Python.Parser
                 {
                     LeftHandValue = expression,
                     Operator = Operator.FloorDivide,
-                    RightHandValue = ParseFactor()
+                    RightHandValue = ParseTerm()
                 };
             }
             if (Parser.Peek().Value == Operator.Modulus.Value)
@@ -299,7 +300,7 @@ namespace Python.Parser
                 {
                     LeftHandValue = expression,
                     Operator = Operator.Modulus,
-                    RightHandValue = ParseFactor()
+                    RightHandValue = ParseTerm()
                 };
             }
             // TODO what is the @ operator?
@@ -310,7 +311,7 @@ namespace Python.Parser
                 {
                     LeftHandValue = null,
                     Operator = Operator.Multiply,
-                    RightHandValue = ParseFactor()
+                    RightHandValue = ParseTerm()
                 };
             }*/
             return expression;

@@ -95,5 +95,47 @@ namespace Python.Parser.Test
                 Assert.Fail($"{expected} vs {expr}");
             }
         }
+        [TestMethod]
+        public void TestManyOperations1()
+        {
+            //1 - 2 ** -2 + 3 * 4 // 2
+            // 1 - (2 ** -2) + (3 * 4 // 2)
+            // [1 - (2 ** -2)] + [3 * 4 // 2]
+            var expr = TestUtils.ParseExpression("1 - 2 ** -2 + 3 * 4 // 2").OperationSubParser.ParseShiftExpr();
+            var expected = new EvaluatedExpression
+            {
+                LeftHandValue = new EvaluatedExpression
+                {
+                    LeftHandValue = TestUtils.SimpleNumber(1),
+                    Operator = Operator.Subtract,
+                    RightHandValue = new EvaluatedExpression
+                    {
+                        LeftHandValue = TestUtils.SimpleNumber(2),
+                        Operator = Operator.Exponentiation,
+                        RightHandValue = new EvaluatedExpression
+                        {
+                            Operator = Operator.Subtract,
+                            RightHandValue = TestUtils.SimpleNumber(2)
+                        }
+                    }
+                },
+                Operator = Operator.Add,
+                RightHandValue = new EvaluatedExpression
+                {
+                    LeftHandValue = new EvaluatedExpression
+                    {
+                        LeftHandValue = TestUtils.SimpleNumber(3),
+                        Operator = Operator.Multiply,
+                        RightHandValue = TestUtils.SimpleNumber(4)
+                    },
+                    Operator = Operator.FloorDivide,
+                    RightHandValue = TestUtils.SimpleNumber(2)
+                }
+            };
+            if (!expected.Equals(expr))
+            {
+                Assert.Fail($"{expected} vs {expr}");
+            }
+        }
     }
 }

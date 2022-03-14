@@ -24,5 +24,15 @@ namespace Python.Parser.Test
                 IsVariable = false
             };
         }
+
+        public static EvaluatedExpression Calculation(Expression lhs, Operator op, Expression rhs)
+        {
+            return new EvaluatedExpression
+            {
+                LeftHandValue = lhs,
+                RightHandValue = rhs,
+                Operator = op
+            };
+        }
     }
 }

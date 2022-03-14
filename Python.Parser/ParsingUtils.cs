@@ -34,14 +34,7 @@ namespace Python.Parser
                 operators.Add(eval.Operator);
                 ex = eval.RightHandValue;
             }
-            if (ex is EvaluatedExpression rest)
-            {
-                tree.Add(rest.RightHandValue);
-            }
-            else
-            {
-                tree.Add(ex);
-            }
+            tree.Add(ex);
             if (tree.Count == 1)
             {
                 return tree[0];

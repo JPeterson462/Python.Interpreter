@@ -137,5 +137,60 @@ namespace Python.Parser.Test
                 Assert.Fail($"{expected} vs {expr}");
             }
         }
+        [TestMethod]
+        public void TestComparisonAddition()
+        {
+            var expr = TestUtils.ParseExpression("a + b >= c - d").OperationSubParser.ParseComparison();
+            var expected = new EvaluatedExpression
+            {
+                LeftHandValue = new EvaluatedExpression
+                {
+                    LeftHandValue = TestUtils.SimpleVariable("a"),
+                    Operator = Operator.Add,
+                    RightHandValue = TestUtils.SimpleVariable("b")
+                },
+                Operator = Operator.GreaterThanOrEqualTo,
+                RightHandValue = new EvaluatedExpression
+                {
+                    LeftHandValue = TestUtils.SimpleVariable("c"),
+                    Operator = Operator.Subtract,
+                    RightHandValue = TestUtils.SimpleVariable("d")
+                }
+            };
+            if (!expected.Equals(expr))
+            {
+                Assert.Fail($"{expected} vs {expr}");
+            }
+        }
+        [TestMethod]
+        public void TestNotInAnd()
+        {
+            var expr = TestUtils.ParseExpression("not a in set and b > 0").OperationSubParser.ParseDisjunction();
+            var expected = new EvaluatedExpression
+            {
+                LeftHandValue = new EvaluatedExpression
+                {
+                    LeftHandValue = null,
+                    KeywordOperator = Keyword.Not,
+                    RightHandValue = new EvaluatedExpression
+                    {
+                        LeftHandValue = TestUtils.SimpleVariable("a"),
+                        KeywordOperator = Keyword.In,
+                        RightHandValue = TestUtils.SimpleVariable("set")
+                    }
+                },
+                KeywordOperator = Keyword.And,
+                RightHandValue = new EvaluatedExpression
+                {
+                    LeftHandValue = TestUtils.SimpleVariable("b"),
+                    Operator = Operator.GreaterThan,
+                    RightHandValue = TestUtils.SimpleNumber(0)
+                }
+            };
+            if (!expected.Equals(expr))
+            {
+                Assert.Fail($"{expected} vs {expr}");
+            }
+        }
     }
 }

@@ -25,6 +25,16 @@ namespace Python.Parser.Test
             };
         }
 
+        public static SimpleExpression SimpleVariable(string val)
+        {
+            return new SimpleExpression
+            {
+                Value = val,
+                IsConstant = false,
+                IsVariable = true
+            };
+        }
+
         public static EvaluatedExpression Calculation(Expression lhs, Operator op, Expression rhs)
         {
             return new EvaluatedExpression

@@ -381,12 +381,14 @@ namespace Python.Parser
                 {
                     LeftHandValue = null,
                     KeywordOperator = Keyword.Await,
-                    RightHandValue = ParsePrimary()
+                    RightHandValue = ParsingUtils.FlipExpressionTree(ParsePrimary(), c => c == Operator.ObjectReference.Value
+                                                                                            || c == "(" || c == "[")
                 };
             }
             else
             {
-                return ParsePrimary();
+                return ParsingUtils.FlipExpressionTree(ParsePrimary(), c => c == Operator.ObjectReference.Value
+                                                                              || c == "(" || c == "[");
             }
         }
         // primary:
@@ -402,7 +404,14 @@ namespace Python.Parser
             string next = Parser.Peek().Value;
             if (next == ".")
             {
-
+                Parser.Advance();
+                Expression val = ParsePrimary();
+                return new EvaluatedExpression
+                {
+                    LeftHandValue = atom,
+                    Operator = Operator.ObjectReference,
+                    RightHandValue = val
+                };
             }
             else if (next == "(")
             {
@@ -410,7 +419,16 @@ namespace Python.Parser
             }
             else if (next == "[")
             {
-
+                Parser.Advance();
+                Expression slices = Parser.AtomSubParser.ParseSlices();
+                Parser.Accept("]");
+                Parser.Advance();
+                return new EvaluatedExpression
+                {
+                    LeftHandValue = atom,
+                    IsArrayAccessor = true,
+                    RightHandValue = slices
+                };
             }
             else
             {

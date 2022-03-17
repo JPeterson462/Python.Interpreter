@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Python.Core;
 using Python.Core.Expressions;
 
@@ -12,18 +13,117 @@ namespace Python.Parser
             Parser = parser;
         }
         //arguments:
-        //    | args[','] &')' 
+        //    | args[','] &')'
+        public Expression ParseArguments()
+        {
+            Expression args = ParseArgs();
+            Parser.Accept(")");
+            return args;
+        }
         //args:
         //    | ','.(starred_expression | (assignment_expression | expression !':=') !'=')+ [',' kwargs] 
         //    | kwargs
         //
+        private bool NotKwargs()
+        {
+            return
+                Parser.Peek().Value == "*" || // starred_expression
+                Parser.Peek(1).Value != "=" // (assignment_expression | expression !':=') !'='
+                ;
+        }
+        public Expression ParseArgs()
+        {
+            List<Expression> arguments = new List<Expression>();
+            // ','.(starred_expression | ( assignment_expression | expression !':=') !'=')+
+            if (NotKwargs())
+            {
+                if (Parser.Peek().Value == "*")
+                {
+                    arguments.Add(ParseStarredExpression());
+                }
+                else
+                {
+                    if (Parser.Peek(1).Value == ":=")
+                    {
+                        arguments.Add(Parser.ParseAssignmentExpression());
+                    }
+                    else
+                    {
+                        arguments.Add(Parser.ParseExpression());
+                    }
+                }
+                while (NotKwargs() && Parser.Peek().Value == ",")
+                {
+                    Parser.Advance();
+                    if (Parser.Peek().Value == "*")
+                    {
+                        arguments.Add(ParseStarredExpression());
+                    }
+                    else
+                    {
+                        if (Parser.Peek(1).Value == ":=")
+                        {
+                            arguments.Add(Parser.ParseAssignmentExpression());
+                        }
+                        else
+                        {
+                            arguments.Add(Parser.ParseExpression());
+                        }
+                    }
+                }
+            }
+            arguments.AddRange(((CollectionExpression)ParseKwargs()).Elements);
+            return new CollectionExpression
+            {
+                Elements = arguments,
+                Type = CollectionType.Unknown
+            };
+        }
         //kwargs:
         //    | ','.kwarg_or_starred+ ',' ','.kwarg_or_double_starred+ 
         //    | ','.kwarg_or_starred+
         //    | ','.kwarg_or_double_starred+
         public Expression ParseKwargs()
         {
-            throw new NotImplementedException();
+            List<Expression> arguments = new List<Expression>();
+            if (Parser.Peek().Value == Operator.Exponentiation.Value || Parser.Peek().Value == "**")
+            {
+                arguments.Add(ParseKwargOrDoubleStarred());
+                while (Parser.Peek().Value == ",")
+                {
+                    Parser.Advance();
+                    arguments.Add(ParseKwargOrDoubleStarred());
+                }
+            }
+            else
+            {
+                arguments.Add(ParseKwargOrStarred());
+                while (Parser.Peek().Value == ",")
+                {
+                    Parser.Advance();
+                    if (Parser.Peek().Value == "**" || Parser.Peek().Value == Operator.Exponentiation.Value)
+                    {
+                        // move onto kwarg_or_double_starred
+                    }
+                    else
+                    {
+                        arguments.Add(ParseKwargOrStarred());
+                    }
+                }
+                while (Parser.Peek().Value == ",")
+                {
+                    while (Parser.Peek().Value == ",")
+                    {
+                        Parser.Advance();
+                        arguments.Add(ParseKwargOrDoubleStarred());
+                    }
+                }
+            }
+            return new CollectionExpression
+            {
+                Elements = arguments,
+                Type = CollectionType.Unknown
+            };
         }
         //starred_expression:
         //    | '*' expression

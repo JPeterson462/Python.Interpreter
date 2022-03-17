@@ -56,8 +56,12 @@ namespace Python.Parser
         // t_lookahead: '(' | '[' | '.'
         public Expression ParseTPrimary()
         {
-            Expression ex = ParseAtom();
-            throw new NotImplementedException();
+
+            return null;
+        }
+        private Expression _ParseTPrimary()
+        {
+            return null;
         }
         public Expression ParseAtom()
         {

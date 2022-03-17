@@ -8,6 +8,7 @@ namespace Python.Core.Expressions
         public Keyword KeywordOperator { get; set; }
         public bool IsObjectReference { get; set; }
         public bool IsArrayAccessor { get; set; }
+        public bool IsFunctionCall { get; set; }
         public Expression RightHandValue { get; set; }
 
         public override bool Equals(object other)

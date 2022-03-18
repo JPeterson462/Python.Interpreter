@@ -365,7 +365,12 @@ namespace Python.Parser
                 return new SliceExpression
                 {
                     Start = Parser.ParseNamedExpression(),
-                    IsExpression = true
+                    IsExpression = true,
+                    Interval = new SimpleExpression
+                    {
+                        IsConstant = true,
+                        Value = "0"
+                    }
                 };
             }
         }

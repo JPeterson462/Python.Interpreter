@@ -19,5 +19,12 @@ namespace Python.Core.Expressions
         /// If true, Start defines the elements in range. Otherwise, start <= n < stop
         /// </summary>
         public bool IsExpression { get; set; }
+
+        public override string ToString()
+        {
+            return (Start != null ? Start.ToString() : "0") + " to "
+                + (Stop != null ? Stop.ToString() : "LEN") + " by "
+                + (Interval != null ? Interval.ToString() : "1");
+        }
     }
 }

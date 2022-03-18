@@ -56,12 +56,54 @@ namespace Python.Parser
         // t_lookahead: '(' | '[' | '.'
         public Expression ParseTPrimary()
         {
-
-            return null;
+            return _ParseTPrimary();
         }
         private Expression _ParseTPrimary()
         {
-            return null;
+            Expression atom = ParseAtom();
+            Token next = Parser.Peek();
+            while (next.Type == TokenType.BeginParameters || next.Type == TokenType.BeginList || next.Type == TokenType.ObjectReference
+                || next.Value == "(" || next.Value == "[" || next.Value == ".")
+            {
+                if (Parser.Peek().Value == "." || Parser.Peek().Type == TokenType.ObjectReference)
+                {
+                    Parser.Advance();
+                    atom = new EvaluatedExpression
+                    {
+                        LeftHandValue = atom,
+                        IsObjectReference = true,
+                        RightHandValue = ParseAtom()
+                    };
+                }
+                else if (Parser.Peek().Value == "[" || Parser.Peek().Type == TokenType.BeginList)
+                {
+                    Parser.Advance();
+                    atom = new EvaluatedExpression
+                    {
+                        LeftHandValue = atom,
+                        IsArrayAccessor = true,
+                        RightHandValue = ParseSlices()
+                    };
+                    Parser.Accept(TokenType.EndList);
+                    Parser.Advance();
+                }
+                else if (Parser.Peek().Value == "(" || Parser.Peek().Type == TokenType.BeginParameters)
+                {
+                    Parser.Advance();
+                    atom = new EvaluatedExpression
+                    {
+                        LeftHandValue = atom,
+                        IsFunctionCall = true,
+                        RightHandValue = Parser.ArgumentsSubParser.ParseArguments()
+                    };
+                    Parser.Accept(TokenType.EndParameters);
+                    Parser.Advance();
+                }
+                next = Parser.Peek();
+            }
+            /*// FIXME genexp
+            */
+            return atom;
         }
         public Expression ParseAtom()
         {

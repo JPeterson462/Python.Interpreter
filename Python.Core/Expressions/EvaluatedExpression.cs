@@ -70,6 +70,11 @@ namespace Python.Core.Expressions
                 rightHandPrefix += "[";
                 rightHandSuffix += "]";
             }
+            if (IsFunctionCall)
+            {
+                rightHandPrefix += "(";
+                rightHandSuffix += ")";
+            }
             return $"({LeftHandValue}){rightHandPrefix}({RightHandValue}){rightHandSuffix}";
         }
     }

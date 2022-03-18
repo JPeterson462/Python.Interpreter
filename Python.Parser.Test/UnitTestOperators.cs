@@ -192,5 +192,13 @@ namespace Python.Parser.Test
                 Assert.Fail($"{expected} vs {expr}");
             }
         }
+
+        [TestMethod]
+        public void TestSimpleArrayAccessor()
+        {
+            var expr = TestUtils.ParseExpression("arr[3]").AtomSubParser.ParseTPrimary();
+
+            Assert.Fail($"{expr}");
+        }
     }
 }

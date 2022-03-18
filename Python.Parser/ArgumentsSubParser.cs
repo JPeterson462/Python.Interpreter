@@ -17,7 +17,7 @@ namespace Python.Parser
         public Expression ParseArguments()
         {
             Expression args = ParseArgs();
-            Parser.Accept(")");
+            Parser.Accept(TokenType.EndParameters);
             return args;
         }
         //args:
@@ -72,7 +72,10 @@ namespace Python.Parser
                     }
                 }
             }
-            arguments.AddRange(((CollectionExpression)ParseKwargs()).Elements);
+            if (Parser.Peek().Type != TokenType.EndParameters)
+            {
+                arguments.AddRange(((CollectionExpression)ParseKwargs()).Elements);
+            }
             return new CollectionExpression
             {
                 Elements = arguments,

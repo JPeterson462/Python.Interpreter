@@ -48,10 +48,12 @@ namespace Python.Interpreter
 
             //Expression e18 = ParsingUnitTest("1 - 2 ** -2 + 3 * 4 // 2\n").OperationSubParser.ParseShiftExpr();
 
-            Expression e19 = ParsingUnitTest("arr[3][1]").AtomSubParser.ParseTPrimary();
+            /*Expression e19 = ParsingUnitTest("arr[3][1]").AtomSubParser.ParseTPrimary();
             Expression e20 = ParsingUnitTest("elem.val.subval").AtomSubParser.ParseTPrimary();
             Expression e21 = ParsingUnitTest("func(abc)(eyy)").AtomSubParser.ParseTPrimary();
-            Expression e22 = ParsingUnitTest("func(abc)[0:3]").AtomSubParser.ParseTPrimary();
+            Expression e22 = ParsingUnitTest("func(abc)[0:3]").AtomSubParser.ParseTPrimary();*/
+
+            Expression e23 = ParsingUnitTest("(arr[3] + arr[1])[0]").ParseExpression();
 
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
 

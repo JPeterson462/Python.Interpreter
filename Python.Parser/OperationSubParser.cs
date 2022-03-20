@@ -402,7 +402,7 @@ namespace Python.Parser
         {
             Expression atom = Parser.AtomSubParser.ParseAtom();
             string next = Parser.Peek().Value;
-            if (next == ".")
+            if (next == "." || Parser.Peek().Type == TokenType.ObjectReference)
             {
                 Parser.Advance();
                 Expression val = ParsePrimary();
@@ -413,15 +413,15 @@ namespace Python.Parser
                     RightHandValue = val
                 };
             }
-            else if (next == "(")
+            else if (next == "(" || Parser.Peek().Type == TokenType.BeginParameters)
             {
                 
             }
-            else if (next == "[")
+            else if (next == "[" || Parser.Peek().Type == TokenType.BeginList)
             {
                 Parser.Advance();
                 Expression slices = Parser.AtomSubParser.ParseSlices();
-                Parser.Accept("]");
+                Parser.Accept(TokenType.EndList);
                 Parser.Advance();
                 return new EvaluatedExpression
                 {

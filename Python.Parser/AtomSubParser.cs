@@ -112,6 +112,10 @@ namespace Python.Parser
                 token.Value == Keyword.None.Value || token.Type == TokenType.Number ||
                 token.Type == TokenType.String || token.Type == TokenType.Variable)
             {
+                bool isBoolean = token.Value == Keyword.True.Value || token.Value == Keyword.False.Value;
+                bool isIntegerNumber = token.Type == TokenType.Number && !token.Value.Contains(".");
+                bool isFloatingPointNumber = token.Type == TokenType.Number && token.Value.Contains(".");
+                bool isString = token.Type == TokenType.String;
                 Parser.Advance();
                 return new SimpleExpression
                 {
@@ -119,7 +123,11 @@ namespace Python.Parser
                     IsConstant = token.Type == TokenType.String || token.Type == TokenType.Number ||
                                 token.Value == Keyword.True.Value || token.Value == Keyword.False.Value ||
                                 token.Value == Keyword.None.Value,
-                    IsVariable = token.Type == TokenType.Variable
+                    IsVariable = token.Type == TokenType.Variable,
+                    ConstantType = isBoolean ? typeof(bool) :
+                                        (isString ? typeof(string) :
+                                            (isIntegerNumber ? typeof(int) :
+                                                (isFloatingPointNumber ? typeof(double) : null)))
                 };
             }
             else

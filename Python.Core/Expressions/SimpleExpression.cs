@@ -5,6 +5,7 @@ namespace Python.Core.Expressions
     {
         public string Value { get; set; }
         public bool IsConstant { get; set; }
+        public Type ConstantType { get; set; }
         public bool IsVariable { get; set; }
 
         public SimpleExpression()
@@ -34,7 +35,7 @@ namespace Python.Core.Expressions
 
         public override string ToString()
         {
-            return $"{(IsConstant ? "constant ": "")}{(IsVariable ? "variable " : "")}{Value}";
+            return $"{(IsConstant ? $"{(ConstantType != null ? ConstantType.Name + " " : "")}constant ": "")}{(IsVariable ? "variable " : "")}{Value}";
         }
     }
 }

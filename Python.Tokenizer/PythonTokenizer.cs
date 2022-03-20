@@ -104,7 +104,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.BeginParameters,
-                    Value = null
+                    Value = "("
                 };
             }
             if (GetCurrentCharacter() == ')')
@@ -114,7 +114,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.EndParameters,
-                    Value = null
+                    Value = ")"
                 };
             }
             if (GetCurrentCharacter() == '[')
@@ -124,7 +124,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.BeginList,
-                    Value = null
+                    Value = "["
                 };
             }
             if (GetCurrentCharacter() == ']')
@@ -134,7 +134,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.EndList,
-                    Value = null
+                    Value = "]"
                 };
             }
             if (GetCurrentCharacter() == '{')
@@ -144,7 +144,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.DictionaryStart,
-                    Value = null
+                    Value = "{"
                 };
             }
             if (GetCurrentCharacter() == '}')
@@ -154,7 +154,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.DictionaryEnd,
-                    Value = null
+                    Value = "}"
                 };
             }
             if (GetCurrentCharacter() == ',')
@@ -164,7 +164,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.ElementSeparator,
-                    Value = null
+                    Value = ","
                 };
             }
             if (GetCurrentCharacter() == '@')
@@ -174,7 +174,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.Decorator,
-                    Value = null
+                    Value = "@"
                 };
             }
             if (GetCurrentCharacter() == '.' && PreviousToken?.Type == TokenType.Variable)
@@ -184,7 +184,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.ObjectReference,
-                    Value = null
+                    Value = "."
                 };
             }
             Keyword kw = NextKeyword();
@@ -227,7 +227,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.BeginBlock,
-                    Value = null
+                    Value = ":"
                 };
             }
             if (GetNext(3) == "str")
@@ -236,7 +236,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.Str,
-                    Value = null
+                    Value = "str"
                 };
             }
             if (GetNext(3) == "int")
@@ -245,7 +245,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.Int,
-                    Value = null
+                    Value = "int"
                 };
             }
             if (GetNext(2) == "b\"" || GetNext(2) == "b'")
@@ -254,7 +254,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.Bytes,
-                    Value = null
+                    Value = "b"
                 };
             }
             if (GetNext(2) == "f\"" || GetNext(2) == "f'")
@@ -263,7 +263,7 @@ namespace Python.Tokenizer
                 return new Token
                 {
                     Type = TokenType.Formatted,
-                    Value = null
+                    Value = "f"
                 };
             }
             string numberValue = NextNumber();

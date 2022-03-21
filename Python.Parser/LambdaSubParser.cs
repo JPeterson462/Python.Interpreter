@@ -50,14 +50,106 @@ namespace Python.Parser
         //     | lambda_star_etc
         public CollectionExpression ParseLambdaParameters()
         {
-            // lookahead seems to be the best way to pick a path
-            // /, OR /:
-            // =/, OR =/:
-            // , OR :
-            // =, OR =:
-            // else
-            //FIXME
-            return ParseLambdaSlashNoDefault();
+            int position = Parser.Position;
+            try
+            {
+                List<Expression> parameters = new List<Expression>();
+                // lambda_slash_no_default lambda_param_no_default* lambda_param_with_default* [lambda_star_etc] 
+                CollectionExpression slashNoDefault = ParseLambdaSlashNoDefault();
+                parameters.AddRange(slashNoDefault.Elements);
+                while (Parser.Peek(1).Value != "=")
+                {
+                    parameters.Add(ParseLambdaParamNoDefault());
+                }
+                while (Parser.Peek(1).Value == "=")
+                {
+                    parameters.Add(ParseLambdaParamWithDefault());
+                }
+                if (Parser.Peek().Value == "*" || Parser.Peek().Value == "**")
+                {
+                    parameters.AddRange(ParseLambdaStarEtc().Elements);
+                }
+                return new CollectionExpression
+                {
+                    Elements = parameters,
+                    Type = CollectionType.Tuple
+                };
+            }
+            catch (Exception)
+            {
+                // eat the exception and try the next scenario
+                // TODO decide which path to go down without throwing exceptions and retrying
+                Parser.RewindTo(position);
+            }
+            position = Parser.Position;
+            try
+            {
+                List<Expression> parameters = new List<Expression>();
+                // lambda_slash_with_default lambda_param_with_default* [lambda_star_etc] 
+                CollectionExpression slashWithDefault = ParseLambdaSlashWithDefault();
+                parameters.AddRange(slashWithDefault.Elements);
+                while (Parser.Peek(1).Value == "=")
+                {
+                    parameters.Add(ParseLambdaParamWithDefault());
+                }
+                if (Parser.Peek().Value == "*" || Parser.Peek().Value == "**")
+                {
+                    parameters.AddRange(ParseLambdaStarEtc().Elements);
+                }
+                return new CollectionExpression
+                {
+                    Elements = parameters,
+                    Type = CollectionType.Tuple
+                };
+            }
+            catch (Exception)
+            {
+                // eat the exception and try the next scenario
+                // TODO decide which path to go down without throwing exceptions and retrying
+                Parser.RewindTo(position);
+            }
+            if (Parser.Peek(1).Value != "=")
+            {
+                List<Expression> parameters = new List<Expression>();
+                // lambda_param_no_default+ lambda_param_with_default*[lambda_star_etc] 
+                Expression ex = ParseLambdaParamNoDefault();
+                parameters.Add(ex);
+                while (Parser.Peek(1).Value == "=")
+                {
+                    parameters.Add(ParseLambdaParamWithDefault());
+                }
+                if (Parser.Peek().Value == "*" || Parser.Peek().Value == "**")
+                {
+                    parameters.AddRange(ParseLambdaStarEtc().Elements);
+                }
+                return new CollectionExpression
+                {
+                    Elements = parameters,
+                    Type = CollectionType.Tuple
+                };
+            }
+            else if (Parser.Peek().Value != "*" && Parser.Peek().Value != "**")
+            {
+                List<Expression> parameters = new List<Expression>();
+                // lambda_param_with_default+ [lambda_star_etc] 
+                while (Parser.Peek(1).Value == "=")
+                {
+                    parameters.Add(ParseLambdaParamWithDefault());
+                }
+                if (Parser.Peek().Value == "*" || Parser.Peek().Value == "**")
+                {
+                    parameters.AddRange(ParseLambdaStarEtc().Elements);
+                }
+                return new CollectionExpression
+                {
+                    Elements = parameters,
+                    Type = CollectionType.Tuple
+                };
+            }
+            else
+            {
+                return ParseLambdaStarEtc();
+            }
         }
 
         //     lambda_slash_no_default:
@@ -70,11 +162,7 @@ namespace Python.Parser
             {
                 values.Add(ParseLambdaParamNoDefault());
             }
-            if (Parser.Peek().Value != ":")
-            {
-                // consume the slash if it's there but don't consume the :
-                Parser.Advance();
-            }
+            Parser.Accept("/");
             if (Parser.Peek().Value == ",")
             {
                 Parser.Advance(); // consume the comma
@@ -99,11 +187,7 @@ namespace Python.Parser
             {
                 values.Add(ParseLambdaParamWithDefault());
             }
-            if (Parser.Peek().Value != ":")
-            {
-                // consume the slash if it's there but don't consume the :
-                Parser.Advance();
-            }
+            Parser.Accept("/");
             if (Parser.Peek().Value == ",")
             {
                 Parser.Advance(); // consume the comma
@@ -187,6 +271,10 @@ namespace Python.Parser
         public Expression ParseLambdaParamNoDefault()
         {
             Expression param = ParseLambdaParam();
+            if (Parser.Peek().Value != ":")
+            {
+                Parser.Accept(",");
+            }
             if (Parser.Peek().Value == ",")
             {
                 // consume the comma
@@ -205,6 +293,10 @@ namespace Python.Parser
         {
             Expression param = ParseLambdaParam();
             Expression defaultval = Parser.ParseDefault();
+            if (Parser.Peek().Value != ":")
+            {
+                Parser.Accept(",");
+            }
             if (Parser.Peek().Value == ",")
             {
                 // consume the comma
@@ -226,6 +318,10 @@ namespace Python.Parser
             if (Parser.Peek().Value == "=")
             {
                 defaultval = Parser.ParseDefault();
+            }
+            if (Parser.Peek().Value != ":")
+            {
+                Parser.Accept(",");
             }
             if (Parser.Peek().Value == ",")
             {

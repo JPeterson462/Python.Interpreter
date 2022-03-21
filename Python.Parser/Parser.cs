@@ -91,6 +91,20 @@ namespace Python.Parser
         public Token Peek(int n = 0)
         {
             return Tokens[Position + n];
-        }        
+        }
+        public int IndexOf(string value)
+        {
+            int index = -1, search = Position;
+            while (search < Tokens.Count)
+            {
+                if (Tokens[search].Value == value)
+                {
+                    index = search;
+                    break;
+                }
+                search++;
+            }
+            return index;
+        }
     }
 }

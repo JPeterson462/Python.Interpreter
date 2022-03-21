@@ -12,6 +12,7 @@ namespace Python.Interpreter
     {
         static void Main(string[] args)
         {
+            DateTime st = DateTime.UtcNow;
             /*   // 1. 1 + 2 * 3
                Expression e1 = ParsingUnitTest("1 + 2 * 3\n").OperationSubParser.ParseSum();
                // 2. (3 + 4) * 2
@@ -56,8 +57,10 @@ namespace Python.Interpreter
 
             //Expression e23 = ParsingUnitTest("(arr[3] + arr[1])[0]").ParseExpression();
 
-            Expression e24 = ParsingUnitTest("lambda x: x * 10").LambdaSubParser.ParseLambdef();
-         
+            Expression e24 = ParsingUnitTest("lambda x, y = 100: x * y").LambdaSubParser.ParseLambdef();
+
+            DateTime en = DateTime.UtcNow;
+            TimeSpan offset = en.Subtract(st);
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
 
             PythonTokenizer tokenizer = new PythonTokenizer(source);

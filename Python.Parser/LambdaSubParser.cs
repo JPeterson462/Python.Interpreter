@@ -50,8 +50,8 @@ namespace Python.Parser
         //     | lambda_star_etc
         public CollectionExpression ParseLambdaParameters()
         {
-            int position = Parser.Position;
-            try
+            if ((Parser.IndexOf("/") < Parser.IndexOf(",") || Parser.IndexOf("/") < Parser.IndexOf(":"))
+                && Parser.Peek(1).Value != "=" && Parser.IndexOf("/") >= 0)
             {
                 List<Expression> parameters = new List<Expression>();
                 // lambda_slash_no_default lambda_param_no_default* lambda_param_with_default* [lambda_star_etc] 
@@ -75,14 +75,8 @@ namespace Python.Parser
                     Type = CollectionType.Tuple
                 };
             }
-            catch (Exception)
-            {
-                // eat the exception and try the next scenario
-                // TODO decide which path to go down without throwing exceptions and retrying
-                Parser.RewindTo(position);
-            }
-            position = Parser.Position;
-            try
+            if ((Parser.IndexOf("/") < Parser.IndexOf(",") || Parser.IndexOf("/") < Parser.IndexOf(":"))
+                && Parser.Peek(1).Value == "=" && Parser.IndexOf("/") >= 0)
             {
                 List<Expression> parameters = new List<Expression>();
                 // lambda_slash_with_default lambda_param_with_default* [lambda_star_etc] 
@@ -101,12 +95,6 @@ namespace Python.Parser
                     Elements = parameters,
                     Type = CollectionType.Tuple
                 };
-            }
-            catch (Exception)
-            {
-                // eat the exception and try the next scenario
-                // TODO decide which path to go down without throwing exceptions and retrying
-                Parser.RewindTo(position);
             }
             if (Parser.Peek(1).Value != "=")
             {

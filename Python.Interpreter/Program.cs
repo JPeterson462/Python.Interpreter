@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Python.Core;
+using Python.Core.CodeBlocks;
 using Python.Parser;
 using Python.Tokenizer;
 
@@ -53,8 +54,10 @@ namespace Python.Interpreter
             Expression e21 = ParsingUnitTest("func(abc)(eyy)").AtomSubParser.ParseTPrimary();
             Expression e22 = ParsingUnitTest("func(abc)[0:3]").AtomSubParser.ParseTPrimary();*/
 
-            Expression e23 = ParsingUnitTest("(arr[3] + arr[1])[0]").ParseExpression();
+            //Expression e23 = ParsingUnitTest("(arr[3] + arr[1])[0]").ParseExpression();
 
+            Expression e24 = ParsingUnitTest("lambda x: x * 10").LambdaSubParser.ParseLambdef();
+         
             string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
 
             PythonTokenizer tokenizer = new PythonTokenizer(source);

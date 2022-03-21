@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using Python.Core;
+using Python.Core.CodeBlocks;
 using Python.Core.Expressions;
 
 namespace Python.Parser
@@ -17,11 +19,24 @@ namespace Python.Parser
         {
             Parser.Accept(Keyword.Lambda.Value);
             Parser.Advance();
-
-            throw new NotImplementedException();
+            CollectionExpression parameters = ParseLambdaParams();
+            Parser.Accept(":");
+            Parser.Advance();
+            return new FunctionCodeBlock
+            {
+                Parameters = parameters,
+                Statements = new List<Expression>
+                {
+                    Parser.ParseExpression()
+                }
+            };
         }
         // lambda_params:
         // | lambda_parameters
+        public CollectionExpression ParseLambdaParams()
+        {
+            return ParseLambdaParameters();
+        }
         // 
         // # lambda_parameters etc. duplicates parameters but without annotations
         // # or type comments, and if there's no comma after a parameter, we expect
@@ -33,34 +48,118 @@ namespace Python.Parser
         //     | lambda_param_no_default+ lambda_param_with_default*[lambda_star_etc] 
         //     | lambda_param_with_default+ [lambda_star_etc] 
         //     | lambda_star_etc
+        public CollectionExpression ParseLambdaParameters()
+        {
+            // lookahead seems to be the best way to pick a path
+            // /, OR /:
+            // =/, OR =/:
+            // , OR :
+            // =, OR =:
+            // else
+            //FIXME
+            return ParseLambdaSlashNoDefault();
+        }
 
         //     lambda_slash_no_default:
         //     | lambda_param_no_default+ '/' ',' 
-        //     | lambda_param_no_default+ '/' &':' 
+        //     | lambda_param_no_default+ '/' &':'
+        public CollectionExpression ParseLambdaSlashNoDefault()
+        {
+            List<Expression> values = new List<Expression>();
+            while (Parser.Peek().Value != "/" && Parser.Peek().Value != ":")
+            {
+                values.Add(ParseLambdaParamNoDefault());
+            }
+            if (Parser.Peek().Value != ":")
+            {
+                // consume the slash if it's there but don't consume the :
+                Parser.Advance();
+            }
+            if (Parser.Peek().Value == ",")
+            {
+                Parser.Advance(); // consume the comma
+            }
+            return new CollectionExpression
+            {
+                Type = CollectionType.Tuple,
+                Elements = values
+            };
+        }
         //     lambda_slash_with_default:
         //     | lambda_param_no_default* lambda_param_with_default+ '/' ',' 
-        //     | lambda_param_no_default* lambda_param_with_default+ '/' &':' 
+        //     | lambda_param_no_default* lambda_param_with_default+ '/' &':'
+        public CollectionExpression ParseLambdaSlashWithDefault()
+        {
+            List<Expression> values = new List<Expression>();
+            while (Parser.Peek(1).Value == ",")
+            {
+                values.Add(ParseLambdaParamNoDefault());
+            }
+            while (Parser.Peek().Value != "/" && Parser.Peek().Value != ":")
+            {
+                values.Add(ParseLambdaParamWithDefault());
+            }
+            if (Parser.Peek().Value != ":")
+            {
+                // consume the slash if it's there but don't consume the :
+                Parser.Advance();
+            }
+            if (Parser.Peek().Value == ",")
+            {
+                Parser.Advance(); // consume the comma
+            }
+            return new CollectionExpression
+            {
+                Type = CollectionType.Tuple,
+                Elements = values
+            };
+        }
 
         //     lambda_star_etc:
         //     | '*' lambda_param_no_default lambda_param_maybe_default* [lambda_kwds] 
         //     | '*' ',' lambda_param_maybe_default+ [lambda_kwds] 
         //     | lambda_kwds
-        public Expression ParseLambdaStarEtc()
+        public CollectionExpression ParseLambdaStarEtc()
         {
             if (Parser.Peek().Value == "*")
             {
                 Parser.Advance();
-                if (Parser.Peek().Value == ",")
+                if (Parser.Peek().Value != ",")
                 {
-                    Parser.Advance();
-                    Expression firstParam = ParseLambdaParamNoDefault();
-                    
+                    List<Expression> values = new List<Expression>();
+                    values.Add(ParseLambdaParamNoDefault());
+                    while (Parser.Peek().Type == TokenType.Variable)
+                    {
+                        values.Add(ParseLambdaParamMaybeDefault());
+                    }
+                    if (Parser.Peek().Value == "**")
+                    {
+                        values.Add(ParseLambdaKeywords());
+                    }
+                    return new CollectionExpression
+                    {
+                        Type = CollectionType.Tuple,
+                        Elements = values
+                    };
                 }
                 else
                 {
-
+                    Parser.Advance(); // consume the comma
+                    List<Expression> values = new List<Expression>();
+                    while (Parser.Peek().Type == TokenType.Variable)
+                    {
+                        values.Add(ParseLambdaParamMaybeDefault());
+                    }
+                    if (Parser.Peek().Value == "**")
+                    {
+                        values.Add(ParseLambdaKeywords());
+                    }
+                    return new CollectionExpression
+                    {
+                        Type = CollectionType.Tuple,
+                        Elements = values
+                    };
                 }
-                throw new NotImplementedException();
             }
             else
             {
@@ -69,15 +168,16 @@ namespace Python.Parser
         }
 
         //     lambda_kwds: '**' lambda_param_no_default
-        public Expression ParseLambdaKeywords()
+        public CollectionExpression ParseLambdaKeywords()
         {
             Parser.Accept("**");
             Parser.Advance();
-            return new EvaluatedExpression
+            return new CollectionExpression
             {
-                LeftHandValue = null,
-                Operator = Operator.Exponentiation, // TODO need special handling
-                RightHandValue = ParseLambdaParamNoDefault()
+                Type = CollectionType.UnpackedDictionary,
+                Elements = new List<Expression> {
+                    ParseLambdaParamNoDefault()
+                }
             };
         }
 
@@ -87,6 +187,11 @@ namespace Python.Parser
         public Expression ParseLambdaParamNoDefault()
         {
             Expression param = ParseLambdaParam();
+            if (Parser.Peek().Value == ",")
+            {
+                // consume the comma
+                Parser.Advance();
+            }
             return new LambdaParameterExpression
             {
                 Identifier = param,
@@ -100,6 +205,11 @@ namespace Python.Parser
         {
             Expression param = ParseLambdaParam();
             Expression defaultval = Parser.ParseDefault();
+            if (Parser.Peek().Value == ",")
+            {
+                // consume the comma
+                Parser.Advance();
+            }
             return new LambdaParameterExpression
             {
                 Identifier = param,
@@ -116,6 +226,11 @@ namespace Python.Parser
             if (Parser.Peek().Value == "=")
             {
                 defaultval = Parser.ParseDefault();
+            }
+            if (Parser.Peek().Value == ",")
+            {
+                // consume the comma
+                Parser.Advance();
             }
             return new LambdaParameterExpression
             {

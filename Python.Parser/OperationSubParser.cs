@@ -397,7 +397,6 @@ namespace Python.Parser
         // | primary '(' [arguments] ')' 
         // | primary '[' slices ']' 
         // | atom
-        // FIXME probably going to need to reverse so it's evaluated L-to-R
         public Expression ParsePrimary()
         {
             Expression atom = Parser.AtomSubParser.ParseAtom();

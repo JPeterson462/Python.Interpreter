@@ -386,5 +386,12 @@ namespace Python.Parser
         {
             return Parser.Peek().Type == TokenType.BeginBlock || Parser.Peek().Value == ":";
         }
+
+        // genexp:
+        //  | '(' (assignment_expression | expression !':=') for_if_clauses ')' 
+        public Expression ParseGenexp()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

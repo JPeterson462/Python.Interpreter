@@ -17,6 +17,7 @@ namespace Python.Tokenizer
         private List<char> allowedVariablePrefixes = new List<char>((UppercaseLetters + LowercaseLetters + Numbers + "_").ToCharArray());
         // variables shouldn't start with _ but numpy has __all__?
         private List<char> allowedNumberCharacters = new List<char>((Numbers + "e.j").ToCharArray());
+        private int previousTabDistance = 0;
         public PythonTokenizer(string source) : base(source)
         {
             longestKeywords = Keyword.ALL.ToList().OrderByDescending(kw => kw.Value.Length);
@@ -30,6 +31,18 @@ namespace Python.Tokenizer
                 SkipNext(2);
                 return null;
             }
+            if (Position > 0 && Source[Position - 1] == '\n' && previousTabDistance > 0
+                && !(Source[Position] == '\t' || Source[Position] == ' '))
+            {
+                // if we've started a new line and the last line had an indent but this doesn't, add a Dedent
+                previousTabDistance = 0;
+                return new Token
+                {
+                    Type = TokenType.DedentTab,
+                    Value = null,
+                    Count = 0
+                };
+            }
             if (GetCurrentCharacter() == '\t' || GetCurrentCharacter() == ' ')
             {
                 //Advance();
@@ -39,20 +52,23 @@ namespace Python.Tokenizer
                     end++;
                 }
                 SkipNext(end - start);
+                int distance = end - start, previousDistance = previousTabDistance;
+                previousTabDistance = distance;
                 return new Token
                 {
-                    Type = TokenType.Tab,
+                    Type = distance == previousDistance ? TokenType.Tab : (distance > previousDistance ? TokenType.IndentTab : TokenType.DedentTab),
                     Value = null,
-                    Count = end - start
+                    Count = distance
                 };
             }
             if (GetCurrentCharacter() == '\n' || GetCurrentCharacter() == ';')
             {
+                string value = string.Empty + GetCurrentCharacter();
                 Advance();
                 return new Token
                 {
                     Type = TokenType.EndOfExpression,
-                    Value = null
+                    Value = value
                 };
             }
             if (GetCurrentCharacter() == '#')

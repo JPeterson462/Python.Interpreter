@@ -59,9 +59,16 @@ namespace Python.Interpreter
 
             //Expression e23 = ParsingUnitTest("(arr[3] + arr[1])[0]").ParseExpression(); // 49ms
 
-            PythonParser p = ParsingUnitTest("lambda x, y = 100, **rest: x * y");
+            //PythonParser p = ParsingUnitTest("lambda x, y = 100, **rest: x * y");
+
+            PythonParser p = ParsingUnitTest("\ta = 1\n\tb = 1.5\nc = 0\n");
+
+            PrintTokens(p.Tokens);
+
             DateTime parstst = DateTime.UtcNow;
-            Expression e24 = p.LambdaSubParser.ParseLambdef(); // 80ms
+
+            //Expression e24 = p.LambdaSubParser.ParseLambdef(); // 80ms
+            Expression e25 = p.ParseBlock();
 
             DateTime en = DateTime.UtcNow;
             TimeSpan parseoffset = en.Subtract(parstst);
@@ -89,7 +96,14 @@ namespace Python.Interpreter
 
             Console.WriteLine("** done **");
         }
-        private static  void PrintToken(Token t)
+        private static void PrintTokens(List<Token> tokens)
+        {
+            foreach (Token t in tokens)
+            {
+                PrintToken(t);
+            }
+        }
+        private static void PrintToken(Token t)
         {
             if (t == null)
             {

@@ -36,17 +36,45 @@ namespace Python.Parser
             }
             return script;
         }
+        // statements: statement+
+        public CodeBlock ParseStatements(TokenType endToken)
+        {
+            // we need an endToken to handle blocks
+            CodeBlock block = new CodeBlock();
+            while (Peek().Type != endToken)
+            {
+                block.Statements.Add(ParseStatement());
+            }
+            return block;
+        }
         // statement: compound_stmt  | simple_stmts
         public Expression ParseStatement()
         {
             Token token = Peek();
-            // compound_stmt
+           /* // compound_stmt
             if (token.Type == TokenType.Decorator)
             {
                 throw new NotImplementedException();
+            } */
+           // FIXME
+            return ParseSimpleStmts();
+        }
+        // simple_stmts:
+        //    | simple_stmt !';' NEWLINE  # Not needed, there for speedup
+        //    | ';'.simple_stmt+ [';'] NEWLINE
+        public CodeBlock ParseSimpleStmts()
+        {
+            CodeBlock block = new CodeBlock();
+            Expression stmt = OperatorSubParser.ParseSimpleStmt();
+            block.Statements.Add(stmt);
+            while (Peek().Value == ";")
+            {
+                Advance();
+                block.Statements.Add(OperatorSubParser.ParseSimpleStmt());
             }
-
-            return null;
+            Accept("\n");
+            Advance();
+            return block;
         }
         // decorators: ('@' named_expression NEWLINE )+ 
         public Expression ParseDecorator()
@@ -183,6 +211,27 @@ namespace Python.Parser
             Accept("=");
             Advance();
             return ParseExpression();
+        }
+        // block:
+        //    | NEWLINE INDENT statements DEDENT 
+        //    | simple_stmts
+        public CodeBlock ParseBlock()
+        {
+            if (Peek().Value == "\n")
+            {
+                Accept("\n");
+                Advance();
+                Accept(TokenType.IndentTab);
+                Advance();
+                CodeBlock block = ParseStatements(TokenType.DedentTab);
+                Accept(TokenType.DedentTab);
+                Advance();
+                return block;
+            }
+            else
+            {
+                return ParseSimpleStmts();
+            }
         }
     }
 }

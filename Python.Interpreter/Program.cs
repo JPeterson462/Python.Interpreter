@@ -59,12 +59,17 @@ namespace Python.Interpreter
 
             //Expression e23 = ParsingUnitTest("(arr[3] + arr[1])[0]").ParseExpression(); // 49ms
 
-            Expression e24 = ParsingUnitTest("lambda x, y = 100, **rest: x * y").LambdaSubParser.ParseLambdef(); // 80ms
+            PythonParser p = ParsingUnitTest("lambda x, y = 100, **rest: x * y");
+            DateTime parstst = DateTime.UtcNow;
+            Expression e24 = p.LambdaSubParser.ParseLambdef(); // 80ms
 
             DateTime en = DateTime.UtcNow;
+            TimeSpan parseoffset = en.Subtract(parstst);
+            Console.WriteLine("parser time: " + parseoffset);
+
             TimeSpan offset = en.Subtract(st);
             //string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
-            Console.WriteLine("time: " + offset);
+            Console.WriteLine("total time: " + offset);
 
             /*PythonTokenizer tokenizer = new PythonTokenizer(source);
             List<Token> tokens = tokenizer.Consume();
@@ -83,7 +88,6 @@ namespace Python.Interpreter
             //Script script = parser.Parse();
 
             Console.WriteLine("** done **");
-            Console.ReadLine();
         }
         private static  void PrintToken(Token t)
         {
@@ -100,7 +104,15 @@ namespace Python.Interpreter
         }
         public static PythonParser ParsingUnitTest(string source)
         {
-            return new PythonParser(new PythonTokenizer(source).Consume());
+            DateTime st = DateTime.UtcNow;
+
+            PythonParser p = new PythonParser(new PythonTokenizer(source).Consume());
+
+            DateTime en = DateTime.UtcNow;
+            TimeSpan offset = en.Subtract(st);
+            Console.WriteLine("tokenizer time: " + offset);
+
+            return p;
         }
     }
 }

@@ -50,20 +50,23 @@ namespace Python.Interpreter
 
             //Expression e18 = ParsingUnitTest("1 - 2 ** -2 + 3 * 4 // 2\n").OperationSubParser.ParseShiftExpr();
 
-            /*Expression e19 = ParsingUnitTest("arr[3][1]").AtomSubParser.ParseTPrimary();
-            Expression e20 = ParsingUnitTest("elem.val.subval").AtomSubParser.ParseTPrimary();
+            //Expression e12 = ParsingUnitTest("import utils, sys.io as io\n").OperatorSubParser.ParseSimpleStmt(); // 45ms
+
+            //Expression e19 = ParsingUnitTest("arr[3][1]").AtomSubParser.ParseTPrimary(); // 51ms
+            /*Expression e20 = ParsingUnitTest("elem.val.subval").AtomSubParser.ParseTPrimary();
             Expression e21 = ParsingUnitTest("func(abc)(eyy)").AtomSubParser.ParseTPrimary();
             Expression e22 = ParsingUnitTest("func(abc)[0:3]").AtomSubParser.ParseTPrimary();*/
 
-            //Expression e23 = ParsingUnitTest("(arr[3] + arr[1])[0]").ParseExpression();
+            //Expression e23 = ParsingUnitTest("(arr[3] + arr[1])[0]").ParseExpression(); // 49ms
 
-            Expression e24 = ParsingUnitTest("lambda x, y = 100: x * y").LambdaSubParser.ParseLambdef();
+            Expression e24 = ParsingUnitTest("lambda x, y = 100, **rest: x * y").LambdaSubParser.ParseLambdef(); // 80ms
 
             DateTime en = DateTime.UtcNow;
             TimeSpan offset = en.Subtract(st);
-            string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
+            //string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
+            Console.WriteLine("time: " + offset);
 
-            PythonTokenizer tokenizer = new PythonTokenizer(source);
+            /*PythonTokenizer tokenizer = new PythonTokenizer(source);
             List<Token> tokens = tokenizer.Consume();
             /*DateTime startTime = DateTime.Now;
             Console.WriteLine(startTime + ": start");
@@ -76,10 +79,11 @@ namespace Python.Interpreter
             TimeSpan difference = endTime.Subtract(startTime);
             Console.WriteLine("Time elapsed: " + difference.Milliseconds + "ms");*/
 
-            PythonParser parser = new PythonParser(tokens);
-            Script script = parser.Parse();
+            //PythonParser parser = new PythonParser(tokens);
+            //Script script = parser.Parse();
 
             Console.WriteLine("** done **");
+            Console.ReadLine();
         }
         private static  void PrintToken(Token t)
         {

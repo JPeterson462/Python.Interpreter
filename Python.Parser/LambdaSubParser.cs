@@ -246,9 +246,11 @@ namespace Python.Parser
             Parser.Advance();
             return new CollectionExpression
             {
-                Type = CollectionType.UnpackedDictionary,
                 Elements = new List<Expression> {
-                    ParseLambdaParamNoDefault()
+                    new OperatorExpression {
+                        Expression = ParseLambdaParamNoDefault(),
+                        Operator = Operator.Exponentiation
+                    }
                 }
             };
         }

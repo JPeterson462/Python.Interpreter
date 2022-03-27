@@ -203,11 +203,19 @@ namespace Python.Parser
                     Expression = Parser.ParseStarExpressions()
                 };
             }
-            // FIXME TODO
-            //| star_expressions
-            //assignment
-
-            throw new NotImplementedException();
+            try
+            {
+                Expression ex = ParseAssignment();
+                if (ex == null)
+                {
+                    ex = Parser.ParseStarExpressions();
+                }
+                return ex;
+            }
+            catch (Exception)
+            {
+                return Parser.ParseStarExpressions();
+            }
         }
         // del_targets: ','.del_target+ [',']
         public CollectionExpression ParseDelTargets()
@@ -476,8 +484,169 @@ namespace Python.Parser
         //
         public Expression ParseAssignment()
         {
-            //FIXME
-            throw new NotImplementedException();
+            // augmented assignment expression
+            if (Parser.Peek().Type == TokenType.Variable
+                && Parser.Peek(1).Value == ":")
+            {
+                int position = Parser.Position;
+                try
+                {
+                    string tgt = Parser.Peek().Value;
+                    Parser.Advance();
+                    Parser.Advance();
+                    Expression ex = Parser.ParseExpression();
+                    if (Parser.Peek().Value == "=")
+                    {
+                        Parser.Advance();
+                        Expression rhs = ParseAnnotatedRhs();
+                        return new EvaluatedExpression
+                        {
+                            LeftHandValue = new SimpleExpression
+                            {
+                                Value = tgt,
+                                IsVariable = true
+                            },
+                            Annotation = ex,
+                            Operator = Operator.Set,
+                            RightHandValue = rhs
+                        };
+                    }
+                    else
+                    {
+                        // the RHS is optional in this assignment? leave it as a simple expression for now
+                        return new SimpleExpression
+                        {
+                            Value = tgt,
+                            IsVariable = true,
+                            Annotation = ex
+                        };
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Parser.RewindTo(position);
+                    // rewind and try the next one
+                }
+            }
+            if (Parser.Peek().Value == "(")
+            {
+                int position = Parser.Position;
+                try
+                {
+                    // TODO the grammar makes this look like it should have a nested case?
+                    Expression singleTarget = Parser.AtomSubParser.ParseSingleTarget();
+                    Parser.Accept(")");
+                    return singleTarget;
+                }
+                catch (Exception ex)
+                {
+                    Parser.RewindTo(position);
+                    // rewind and try the next one
+                }
+            }
+            int previous = Parser.Position;
+            try
+            {
+                Expression lhs = Parser.AtomSubParser.ParseSingleSubscriptAttributeTarget();
+                Parser.Accept(":");
+                Expression ex = Parser.ParseExpression();
+                if (Parser.Peek().Value == "=")
+                {
+                    Parser.Advance();
+                    Expression rhs = ParseAnnotatedRhs();
+                    return new EvaluatedExpression
+                    {
+                        LeftHandValue = lhs,
+                        Annotation = ex,
+                        Operator = Operator.Set,
+                        RightHandValue = rhs
+                    };
+                }
+                else
+                {
+                    // the RHS is optional in this assignment? leave it as a simple expression for now
+                    return lhs;
+                }
+            }
+            catch (Exception ex)
+            {
+                Parser.RewindTo(previous);
+                // rewind and try the next one
+            }
+            // star_targets
+            previous = Parser.Position;
+            try
+            {
+                List<Expression> targets = new List<Expression>();
+                Expression lhs = Parser.AtomSubParser.ParseStarTargets();
+                Parser.Accept("=");
+                Parser.Advance();
+                targets.Add(lhs);
+                while (Parser.IndexOf("=") < Parser.IndexOf(TokenType.EndOfExpression)
+                        && Parser.IndexOf("=") >= 0)
+                {
+                    lhs = Parser.AtomSubParser.ParseStarTargets();
+                    Parser.Accept("=");
+                    Parser.Advance();
+                    targets.Add(lhs);
+                }
+                Expression expr = Parser.Peek().Value == Keyword.Yield.Value ? Parser.AtomSubParser.ParseYieldExpr() : Parser.ParseStarExpressions();
+                EvaluatedExpression result = new EvaluatedExpression
+                {
+                    LeftHandValue = targets[targets.Count - 1],
+                    Operator = Operator.Set,
+                    RightHandValue = expr
+                };
+                int idx = targets.Count - 2;
+                while (idx >= 0)
+                {
+                    result = new EvaluatedExpression
+                    {
+                        LeftHandValue = targets[idx],
+                        Operator = Operator.Set,
+                        RightHandValue = result
+                    };
+                    idx--;
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Parser.RewindTo(previous);
+                // rewind and try the next one
+            }
+            // single_target augassign
+            previous = Parser.Position;
+            Expression target = Parser.AtomSubParser.ParseSingleTarget();
+            if (IsAugAssign(Parser.Peek().Value))
+            {
+                string op = Parser.Peek().Value;
+                Expression expr = Parser.Peek().Value == Keyword.Yield.Value ? Parser.AtomSubParser.ParseYieldExpr() : Parser.ParseStarExpressions();
+                return new EvaluatedExpression
+                {
+                    LeftHandValue = target,
+                    Operator = new Operator(op),
+                    RightHandValue = expr
+                };
+            }
+            else
+            {
+                Parser.RewindTo(previous);
+                // rewind and try the next one
+            }
+            return null;
+        }
+        // annotated_rhs: yield_expr | star_expressions
+        public Expression ParseAnnotatedRhs()
+        {
+            if (Parser.Peek().Value == Keyword.Yield.Value)
+            {
+                return Parser.AtomSubParser.ParseYieldExpr();
+            }
+            else
+            {
+                return Parser.ParseStarExpressions();
+            }
         }
         //augassign:
         //    | '+=' 

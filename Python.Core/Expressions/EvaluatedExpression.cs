@@ -4,6 +4,7 @@ namespace Python.Core.Expressions
     public class EvaluatedExpression : Expression
     {
         public Expression LeftHandValue { get; set; }
+        public Expression Annotation { get; set; }
         public Operator Operator { get; set; }
         public Keyword KeywordOperator { get; set; }
         public bool IsObjectReference { get; set; }
@@ -75,7 +76,7 @@ namespace Python.Core.Expressions
                 rightHandPrefix += "(";
                 rightHandSuffix += ")";
             }
-            return $"({LeftHandValue}){rightHandPrefix}({RightHandValue}){rightHandSuffix}";
+            return $"({LeftHandValue}{(Annotation != null ? " " + Annotation.ToString() : "")}){rightHandPrefix}({RightHandValue}){rightHandSuffix}";
         }
     }
 }

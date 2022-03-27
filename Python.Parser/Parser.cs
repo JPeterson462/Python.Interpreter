@@ -106,5 +106,19 @@ namespace Python.Parser
             }
             return index;
         }
+        public int IndexOf(TokenType type)
+        {
+            int index = -1, search = Position;
+            while (search < Tokens.Count)
+            {
+                if (Tokens[search].Type == type)
+                {
+                    index = search;
+                    break;
+                }
+                search++;
+            }
+            return index;
+        }
     }
 }

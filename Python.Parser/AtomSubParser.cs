@@ -233,6 +233,155 @@ namespace Python.Parser
 
             throw new NotImplementedException();
         }
+        //star_targets:
+        //| star_target !',' 
+        //| star_target(',' star_target )* [',']
+        public CollectionExpression ParseStarTargets()
+        {
+            CollectionExpression collection = new CollectionExpression
+            {
+                Type = CollectionType.List
+            };
+            collection.Elements.Add(ParseStarTarget());
+            while (Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+                collection.Elements.Add(ParseStarTarget());
+            }
+            return collection;
+        }
+        //star_targets_list_seq: ','.star_target+ [',']
+        public CollectionExpression ParseStarTargetsListSeq()
+        {
+            CollectionExpression collection = new CollectionExpression
+            {
+                Type = CollectionType.List
+            };
+            collection.Elements.Add(ParseStarTarget());
+            while (Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+                collection.Elements.Add(ParseStarTarget());
+            }
+            return collection;
+        }
+        //star_targets_tuple_seq:
+        //| star_target(',' star_target )+ [',']
+        //| star_target ','
+        public CollectionExpression ParseStarTargetsTupleSeq()
+        {
+            CollectionExpression collection = new CollectionExpression
+            {
+                Type = CollectionType.List
+            };
+            collection.Elements.Add(ParseStarTarget());
+            while (Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+                collection.Elements.Add(ParseStarTarget());
+            }
+            return collection;
+        }
+        //star_target:
+        //| '*' (!'*' star_target) 
+        //| target_with_star_atom
+        public Expression ParseStarTarget()
+        {
+            if (Parser.Peek().Value == "*")
+            {
+                Parser.Advance();
+                Parser.DontAccept("*");
+                return ParseStarTarget();
+            }
+            else
+            {
+                return ParseTargetWithStarAtom();
+            }
+        }
+        //target_with_star_atom:
+        //| t_primary '.' NAME !t_lookahead
+        //| t_primary '[' slices ']' !t_lookahead
+        //| star_atom
+        public Expression ParseTargetWithStarAtom()
+        {
+            int position = Parser.Position;
+            try
+            {
+                Expression tprimary = ParseTPrimary();
+                if (Parser.Peek().Value == ".")
+                {
+                    Parser.Advance();
+                    string name = Parser.OperatorSubParser.ParseName();
+                    DontAcceptTLookahead();
+                    return new EvaluatedExpression
+                    {
+                        LeftHandValue = tprimary,
+                        Operator = Operator.ObjectReference,
+                        RightHandValue = new SimpleExpression
+                        {
+                            Value = name,
+                            IsVariable = true
+                        }
+                    };
+                }
+                else if (Parser.Peek().Value == "[")
+                {
+                    Parser.Advance();
+                    Expression slices = Parser.AtomSubParser.ParseSlices();
+                    Parser.Accept("]");
+                    Parser.Advance();
+                    DontAcceptTLookahead();
+                    return new EvaluatedExpression
+                    {
+                        LeftHandValue = tprimary,
+                        RightHandValue = slices,
+                        IsArrayAccessor = true
+                    };
+                }
+                else
+                {
+                    Parser.ThrowSyntaxError(Parser.Position);
+                }
+            }
+            catch (Exception)
+            {
+                Parser.RewindTo(position);
+                return ParseStarAtom();
+            }
+            return null; // shouldn't get here
+        }
+        //star_atom:
+        //| NAME
+        //| '(' target_with_star_atom ')' 
+        //| '(' [star_targets_tuple_seq] ')' 
+        //| '[' [star_targets_list_seq] ']'
+        public Expression ParseStarAtom()
+        {
+            if (Parser.Peek().Value == "(")
+            {
+                Parser.Advance();
+                Expression ex = ParseStarTargetsTupleSeq();
+                Parser.Accept(")");
+                Parser.Advance();
+                return ex;
+            }
+            if (Parser.Peek().Value == "[")
+            {
+                Parser.Advance();
+                Expression ex = ParseStarTargetsListSeq();
+                Parser.Accept("]");
+                Parser.Advance();
+                return ex;
+            }
+            Parser.Accept(TokenType.Variable);
+            string value = Parser.Peek().Value;
+            Parser.Advance();
+            return new SimpleExpression
+            {
+                Value = value,
+                IsVariable = true
+            };
+        }
         //single_target:
         //    | single_subscript_attribute_target
         //    | NAME 

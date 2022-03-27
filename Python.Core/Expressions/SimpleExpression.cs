@@ -4,6 +4,7 @@ namespace Python.Core.Expressions
     public class SimpleExpression : Expression
     {
         public string Value { get; set; }
+        public Expression Annotation { get; set; }
         public bool IsConstant { get; set; }
         public Type ConstantType { get; set; }
         public bool IsVariable { get; set; }
@@ -35,7 +36,7 @@ namespace Python.Core.Expressions
 
         public override string ToString()
         {
-            return $"{(IsConstant ? $"{(ConstantType != null ? ConstantType.Name + " " : "")}constant ": "")}{(IsVariable ? "variable " : "")}{Value}";
+            return $"{(IsConstant ? $"{(ConstantType != null ? ConstantType.Name + " " : "")}constant ": "")}{(IsVariable ? "variable " : "")}{(Annotation != null ? Annotation.ToString() + "  " : "")}{Value}";
         }
     }
 }

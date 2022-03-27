@@ -39,32 +39,9 @@ compound_stmt:
     | match_stmt
 
 # NOTE: annotated_rhs may start with 'yield'; yield_expr must start with 'yield'
-assignment:
-    | NAME ':' expression ['=' annotated_rhs ] 
-    | ('(' single_target ')' 
-         | single_subscript_attribute_target) ':' expression ['=' annotated_rhs ] 
-    | (star_targets '=' )+ (yield_expr | star_expressions) !'=' [TYPE_COMMENT] 
-    | single_target augassign ~ (yield_expr | star_expressions) 
-
-augassign:
-    | '+=' 
-    | '-=' 
-    | '*=' 
-    | '@=' 
-    | '/=' 
-    | '%=' 
-    | '&=' 
-    | '|=' 
-    | '^=' 
-    | '<<=' 
-    | '>>=' 
-    | '**=' 
-    | '//=' 
+assignment: OPERATORSUBPARSER
 
 global_stmt: OPERATORSUBPARSER 
-
-del_stmt:
-    | 'del' del_targets &(';' | NEWLINE) 
 
 import_stmt: OPERATORSUBPARSER
 
@@ -305,18 +282,7 @@ block:
     | NEWLINE INDENT statements DEDENT 
     | simple_stmts
 
-star_expressions:
-    | star_expression (',' star_expression )+ [','] 
-    | star_expression ',' 
-    | star_expression
-star_expression:
-    | '*' bitwise_or 
-    | expression
-
-star_named_expressions: ','.star_named_expression+ [','] 
-star_named_expression:
-    | '*' bitwise_or 
-    | named_expression
+star_expressions: OPERATORSUBPARSER
 
 
 assignment_expression:
@@ -397,49 +363,8 @@ yield_expr:
 arguments: ARGUMENTSSUBPARSER
 
 # NOTE: star_targets may contain *bitwise_or, targets may not.
-star_targets:
-    | star_target !',' 
-    | star_target (',' star_target )* [','] 
-star_targets_list_seq: ','.star_target+ [','] 
-star_targets_tuple_seq:
-    | star_target (',' star_target )+ [','] 
-    | star_target ',' 
-star_target:
-    | '*' (!'*' star_target) 
-    | target_with_star_atom
-target_with_star_atom:
-    | t_primary '.' NAME !t_lookahead 
-    | t_primary '[' slices ']' !t_lookahead 
-    | star_atom
-star_atom:
-    | NAME 
-    | '(' target_with_star_atom ')' 
-    | '(' [star_targets_tuple_seq] ')' 
-    | '[' [star_targets_list_seq] ']' 
+star_targets: ATOMSUBPARSER
 
-single_target:
-    | single_subscript_attribute_target
-    | NAME 
-    | '(' single_target ')' 
-single_subscript_attribute_target:
-    | t_primary '.' NAME !t_lookahead 
-    | t_primary '[' slices ']' !t_lookahead 
+del_targets: OPERATORSUBPARSER
 
-del_targets: ','.del_target+ [','] 
-del_target:
-    | t_primary '.' NAME !t_lookahead 
-    | t_primary '[' slices ']' !t_lookahead 
-    | del_t_atom
-del_t_atom:
-    | NAME 
-    | '(' del_target ')' 
-    | '(' [del_targets] ')' 
-    | '[' [del_targets] ']' 
-
-t_primary:
-    | t_primary '.' NAME &t_lookahead 
-    | t_primary '[' slices ']' &t_lookahead 
-    | t_primary genexp &t_lookahead 
-    | t_primary '(' [arguments] ')' &t_lookahead 
-    | atom &t_lookahead 
-t_lookahead: '(' | '[' | '.'
+t_primary: ATOMSUBPARSER

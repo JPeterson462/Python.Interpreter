@@ -44,7 +44,8 @@ namespace Python.Tokenizer
             // make sure we end with an EoE
             tokens.Add(new Token
             {
-                Type = TokenType.EndOfExpression
+                Type = TokenType.EndOfExpression,
+                Value = "\n"
             });
             return tokens;
         }

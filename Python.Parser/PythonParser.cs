@@ -41,7 +41,7 @@ namespace Python.Parser
         {
             // we need an endToken to handle blocks
             CodeBlock block = new CodeBlock();
-            while (Peek().Type != endToken)
+            while (Position < Tokens.Count && Peek().Type != endToken)
             {
                 block.Statements.Add(ParseStatement());
             }
@@ -51,13 +51,15 @@ namespace Python.Parser
         public Expression ParseStatement()
         {
             Token token = Peek();
-           /* // compound_stmt
-            if (token.Type == TokenType.Decorator)
+            Expression compound = CompoundSubParser.ParseCompoundStatement();
+            if (compound != null)
             {
-                throw new NotImplementedException();
-            } */
-           // FIXME
-            return ParseSimpleStmts();
+                return compound;
+            }
+            else
+            {
+                return ParseSimpleStmts();
+            }
         }
         // simple_stmts:
         //    | simple_stmt !';' NEWLINE  # Not needed, there for speedup
@@ -224,8 +226,15 @@ namespace Python.Parser
                 Accept(TokenType.IndentTab);
                 Advance();
                 CodeBlock block = ParseStatements(TokenType.DedentTab);
-                Accept(TokenType.DedentTab);
-                Advance();
+                if (Position < Tokens.Count)
+                {
+                    Accept(TokenType.DedentTab);
+                    Advance();
+                }
+                else
+                {
+                    // at the EOF
+                }
                 return block;
             }
             else

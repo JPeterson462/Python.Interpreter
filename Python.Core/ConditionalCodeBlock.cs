@@ -9,5 +9,11 @@ namespace Python.Core
     {
         public ConditionalType Type { get; set; }
         public Expression Condition { get; set; }
+        public ConditionalCodeBlock ChainedBlock { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Enum.GetName(typeof(ConditionalType), Type)} {Condition}";
+        }
     }
 }

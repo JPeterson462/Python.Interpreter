@@ -21,14 +21,109 @@ namespace Python.Parser
         public Expression ParseCompoundStatement()
         {
             //    | function_def
-            //    | if_stmt
+            if (Parser.Peek().Value == Keyword.If.Value)
+            {
+                //    | if_stmt
+                return ParseIfStmt();
+            }
             //    | class_def
             //    | with_stmt
             //    | for_stmt
             //    | try_stmt
             //    | while_stmt
             //    | match_stmt
-            throw new NotImplementedException();
+            // FIXME
+            return null;
+        }
+
+        public ConditionalCodeBlock ParseIfStmt()
+        {
+            Parser.Accept(Keyword.If.Value);
+            Parser.Advance();
+            Expression condition = Parser.ParseNamedExpression();
+            Parser.Accept(":");
+            Parser.Advance();
+            CodeBlock block = Parser.ParseBlock();
+            if (Parser.Peek().Value == Keyword.Elif.Value)
+            {
+                return new ConditionalCodeBlock
+                {
+                    Condition = condition,
+                    Type = ConditionalType.If,
+                    ChainedBlock = ParseElifStmt(),
+                    Statements = block.Statements
+                };
+            }
+            else if (Parser.Peek().Value == Keyword.Else.Value)
+            {
+                return new ConditionalCodeBlock
+                {
+                    Condition = condition,
+                    Type = ConditionalType.If,
+                    ChainedBlock = ParseElseStmt(),
+                    Statements = block.Statements
+                };
+            }
+            else
+            {
+                return new ConditionalCodeBlock
+                {
+                    Condition = condition,
+                    Type = ConditionalType.If,
+                    Statements = block.Statements
+                };
+            }
+        }
+        public ConditionalCodeBlock ParseElifStmt()
+        {
+            Parser.Accept(Keyword.Elif.Value);
+            Parser.Advance();
+            Expression condition = Parser.ParseNamedExpression();
+            Parser.Accept(":");
+            Parser.Advance();
+            CodeBlock block = Parser.ParseBlock();
+            if (Parser.Peek().Value == Keyword.Elif.Value)
+            {
+                return new ConditionalCodeBlock
+                {
+                    Condition = condition,
+                    Type = ConditionalType.Elif,
+                    ChainedBlock = ParseElifStmt(),
+                    Statements = block.Statements
+                };
+            }
+            else if (Parser.Peek().Value == Keyword.Else.Value)
+            {
+                return new ConditionalCodeBlock
+                {
+                    Condition = condition,
+                    Type = ConditionalType.Elif,
+                    ChainedBlock = ParseElseStmt(),
+                    Statements = block.Statements
+                };
+            }
+            else
+            {
+                return new ConditionalCodeBlock
+                {
+                    Condition = condition,
+                    Type = ConditionalType.Elif,
+                    Statements = block.Statements
+                };
+            }
+        }
+        public ConditionalCodeBlock ParseElseStmt()
+        {
+            Parser.Accept(Keyword.Else.Value);
+            Parser.Advance();
+            Parser.Accept(":");
+            Parser.Advance();
+            CodeBlock block = Parser.ParseBlock();
+            return new ConditionalCodeBlock
+            {
+                Type = ConditionalType.Else,
+                Statements = block.Statements
+            };
         }
     }
 }

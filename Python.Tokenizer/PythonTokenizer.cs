@@ -63,7 +63,7 @@ namespace Python.Tokenizer
             }
             if (GetCurrentCharacter() == '\n' || GetCurrentCharacter() == ';')
             {
-                string value = string.Empty + GetCurrentCharacter();
+                string value = string.Empty + GetCurrentCharacter().ToString();
                 Advance();
                 return new Token
                 {

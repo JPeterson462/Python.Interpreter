@@ -64,7 +64,9 @@ namespace Python.Interpreter
             //PythonParser p = ParsingUnitTest("\ta = 1\n\tb = 1.5\nc = 0\n");
 
             //PythonParser p = ParsingUnitTest("del a, b.x, c[0]");
-            PythonParser p = ParsingUnitTest("a = 100 * c[0]");
+            //PythonParser p = ParsingUnitTest("a = 100 * c[0]");
+
+            PythonParser p = ParsingUnitTest("if x > 0:\n\ta = x\nelif x < 0:\n\ta = -1\nelse:\n\ta = 0");
 
             //PrintTokens(p.Tokens);
 
@@ -73,7 +75,8 @@ namespace Python.Interpreter
             //Expression e24 = p.LambdaSubParser.ParseLambdef(); // 80ms
             //Expression e25 = p.ParseBlock();
             //Expression e26 = p.OperatorSubParser.ParseSimpleStmt();
-            Expression e27 = p.OperatorSubParser.ParseSimpleStmt();
+            //Expression e27 = p.OperatorSubParser.ParseSimpleStmt();
+            Expression e28 = p.CompoundSubParser.ParseCompoundStatement();
 
             DateTime en = DateTime.UtcNow;
             TimeSpan parseoffset = en.Subtract(parstst);

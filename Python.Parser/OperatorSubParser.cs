@@ -141,16 +141,7 @@ namespace Python.Parser
             if (next == Keyword.Del.Value)
             {
                 Parser.Advance();
-                CollectionExpression ex = new CollectionExpression
-                {
-                    Type = CollectionType.Unknown
-                };
-                ex.Elements.Add(ParseDelTarget());
-                while (Parser.Peek().Value == ",")
-                {
-                    Parser.Advance();
-                    ex.Elements.Add(ParseDelTarget());
-                }
+                CollectionExpression ex = ParseDelTargets();
                 return new OperatorExpression
                 {
                     KeywordOperator = Keyword.Del,
@@ -218,7 +209,21 @@ namespace Python.Parser
 
             throw new NotImplementedException();
         }
-        // del_targets: ','.del_target+ [','] 
+        // del_targets: ','.del_target+ [',']
+        public CollectionExpression ParseDelTargets()
+        {
+            CollectionExpression ex = new CollectionExpression
+            {
+                Type = CollectionType.Unknown
+            };
+            ex.Elements.Add(ParseDelTarget());
+            while (Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+                ex.Elements.Add(ParseDelTarget());
+            }
+            return ex;
+        }
         //  del_target:
         //   | t_primary '.' NAME !t_lookahead 
         //   | t_primary '[' slices ']' !t_lookahead 
@@ -230,8 +235,83 @@ namespace Python.Parser
         //   | '[' [del_targets] ']'
         public Expression ParseDelTarget()
         {
-            // FIXME
-            throw new NotImplementedException();
+            // try to parse as a t_primary first
+            int position = Parser.Position;
+            try
+            {
+                Expression tprimary = Parser.AtomSubParser.ParseTPrimary();
+                if (Parser.Peek().Value == ".")
+                {
+                    Parser.Advance();
+                    string name = Parser.Peek().Value;
+                    Parser.Advance();
+                    Parser.AtomSubParser.DontAcceptTLookahead();
+                    return new EvaluatedExpression
+                    {
+                        LeftHandValue = tprimary,
+                        Operator = Operator.ObjectReference,
+                        RightHandValue = new SimpleExpression
+                        {
+                            Value = name,
+                            IsVariable = true
+                        }
+                    };
+                }
+                else if (Parser.Peek().Value == "[")
+                {
+                    Parser.Advance();
+                    Expression slices = Parser.AtomSubParser.ParseSlices();
+                    Parser.Accept("]");
+                    Parser.Advance();
+                    Parser.AtomSubParser.DontAcceptTLookahead();
+                    return new EvaluatedExpression
+                    {
+                        LeftHandValue = tprimary,
+                        IsArrayAccessor = true,
+                        RightHandValue = slices
+                    };
+                }
+                else
+                {
+                    return tprimary;
+                }
+            }
+            catch (Exception)
+            {
+                Parser.RewindTo(position);
+                // it's not a t_primary; hopefully this try-catch isn't too expensive
+                if (Parser.Peek().Type == TokenType.Variable)
+                {
+                    Expression ex = new SimpleExpression
+                    {
+                        IsVariable = true,
+                        Value = Parser.Peek().Value
+                    };
+                    Parser.Advance();
+                    return ex;
+                }
+                else if (Parser.Peek().Type == TokenType.BeginParameters)
+                {
+                    Parser.Advance();
+                    Expression ex = ParseDelTargets();
+                    Parser.Accept(TokenType.EndParameters);
+                    Parser.Advance();
+                    return ex;
+                }
+                else if(Parser.Peek().Type == TokenType.BeginList)
+                {
+                    Parser.Advance();
+                    Expression ex = ParseDelTargets();
+                    Parser.Accept(TokenType.EndList);
+                    Parser.Advance();
+                    return ex;
+                }
+                else
+                {
+                    Parser.ThrowSyntaxError(Parser.Position);
+                }
+            }
+            return null; // shouldn't get past the syntax error
         }
         // import_stmt: import_name | import_from
         // import_name: 'import' dotted_as_names

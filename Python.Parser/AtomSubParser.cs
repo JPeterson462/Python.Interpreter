@@ -370,9 +370,11 @@ namespace Python.Parser
             else
             {
                 Parser.RewindTo(position);
+                Expression elem = Parser.ParseNamedExpression();
                 return new SliceExpression
                 {
-                    Start = Parser.ParseNamedExpression(),
+                    Start = elem,
+                    Stop = elem,
                     IsExpression = true,
                     Interval = new SimpleExpression
                     {

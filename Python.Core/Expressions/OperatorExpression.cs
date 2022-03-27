@@ -9,7 +9,7 @@ namespace Python.Core.Expressions
 
         public override string ToString()
         {
-            return $"{(KeywordOperator != null ? KeywordOperator.ToString() : Operator.ToString())}{Expression}";
+            return $"{(KeywordOperator != null ? KeywordOperator.ToString() : Operator.ToString())} {Expression}";
         }
     }
 }

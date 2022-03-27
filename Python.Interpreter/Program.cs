@@ -61,14 +61,17 @@ namespace Python.Interpreter
 
             //PythonParser p = ParsingUnitTest("lambda x, y = 100, **rest: x * y");
 
-            PythonParser p = ParsingUnitTest("\ta = 1\n\tb = 1.5\nc = 0\n");
+            //PythonParser p = ParsingUnitTest("\ta = 1\n\tb = 1.5\nc = 0\n");
 
-            PrintTokens(p.Tokens);
+            PythonParser p = ParsingUnitTest("del a, b.x, c[0]");
+
+            //PrintTokens(p.Tokens);
 
             DateTime parstst = DateTime.UtcNow;
 
             //Expression e24 = p.LambdaSubParser.ParseLambdef(); // 80ms
-            Expression e25 = p.ParseBlock();
+            //Expression e25 = p.ParseBlock();
+            Expression e26 = p.OperatorSubParser.ParseSimpleStmt();
 
             DateTime en = DateTime.UtcNow;
             TimeSpan parseoffset = en.Subtract(parstst);

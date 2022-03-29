@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using Python.Core;
+using Python.Core.Expressions;
+
 namespace Python.Parser
 {
     public class CompoundSubParser
@@ -156,6 +159,84 @@ namespace Python.Parser
                 Type = ConditionalType.Else,
                 Statements = block.Statements
             };
+        }
+
+        public MatchExpression ParseMatchStmt()
+        {
+            Parser.Accept(Keyword.Match.Value);
+            Parser.Advance();
+            Expression subject = ParseSubjectExpr();
+            Parser.Accept(":");
+            Parser.Advance();
+            Parser.Accept("\n");
+            Parser.Advance();
+            Parser.Accept(TokenType.IndentTab);
+            Parser.Advance();
+            List<ConditionalCodeBlock> cases = new List<ConditionalCodeBlock>();
+            while (Parser.Peek().Value == Keyword.Case.Value)
+            {
+                cases.Add(ParseCaseStatement());
+            }
+            Parser.Accept(TokenType.DedentTab);
+            Parser.Advance();
+            return new MatchExpression
+            {
+                Subject = subject,
+                CaseStatements = cases
+            };
+        }
+
+        //subject_expr:
+        //    | ','.star_named_expression+ [','] 
+        //    | named_expression
+        public Expression ParseSubjectExpr()
+        {
+            // not sure when a star_named_expression wouldn't match for a named_expression...
+            Expression e1 = Parser.ParseStarNamedExpression();
+            if (Parser.Peek().Value == ",")
+            {
+                CollectionExpression collection = new CollectionExpression
+                {
+                    Type = CollectionType.List
+                };
+                collection.Elements.Add(e1);
+                while (Parser.Peek().Value == ",")
+                {
+                    Parser.Advance();
+                    collection.Elements.Add(Parser.ParseStarNamedExpression());
+                }
+                return collection;
+            }
+            else
+            {
+                return e1;
+            }
+        }
+
+        public ConditionalCodeBlock ParseCaseStatement()
+        {
+            Parser.Accept(Keyword.Case.Value);
+            Parser.Advance();
+            Expression pattern = ParsePatternsAndGuard();
+            Parser.Accept(":");
+            Parser.Advance();
+            CodeBlock block = Parser.ParseBlock();
+            return new ConditionalCodeBlock
+            {
+                Type = ConditionalType.Case,
+                Condition = pattern,
+                Statements = block.Statements
+            };
+        }
+        public Expression ParsePatternsAndGuard()
+        {
+            PatternExpression pattern = Parser.PatternSubParser.ParsePatterns();
+            if (Parser.Peek().Value == Keyword.If.Value)
+            {
+                Parser.Advance();
+                pattern.Guard = Parser.ParseNamedExpression();
+            }
+            return pattern;
         }
     }
 }

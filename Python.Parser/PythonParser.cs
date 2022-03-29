@@ -17,6 +17,7 @@ namespace Python.Parser
         public OperatorSubParser OperatorSubParser { get; set; }
         public ArgumentsSubParser ArgumentsSubParser { get; set; }
         public CompoundSubParser CompoundSubParser { get; set; }
+        public PatternSubParser PatternSubParser { get; set; }
         public PythonParser(List<Token> tokens) : base(tokens)
         {
             OperationSubParser = new OperationSubParser(this);
@@ -25,6 +26,7 @@ namespace Python.Parser
             OperatorSubParser = new OperatorSubParser(this);
             ArgumentsSubParser = new ArgumentsSubParser(this);
             CompoundSubParser = new CompoundSubParser(this);
+            PatternSubParser = new PatternSubParser(this);
         }
         // statements: statement+ 
         public Script Parse()

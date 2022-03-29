@@ -3,7 +3,7 @@ namespace Python.Core
 {
     public enum ConditionalType
     {
-        If, Elif, Else, While, For
+        If, Elif, Else, While, For, Case
     }
     public class ConditionalCodeBlock : CodeBlock
     {

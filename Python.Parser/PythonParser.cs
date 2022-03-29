@@ -69,13 +69,16 @@ namespace Python.Parser
             CodeBlock block = new CodeBlock();
             Expression stmt = OperatorSubParser.ParseSimpleStmt();
             block.Statements.Add(stmt);
-            while (Peek().Value == ";")
+            while (Position < Tokens.Count && Peek().Value == ";")
             {
                 Advance();
                 block.Statements.Add(OperatorSubParser.ParseSimpleStmt());
             }
-            Accept("\n");
-            Advance();
+            if (Position < Tokens.Count)
+            {
+                Accept("\n");
+                Advance();
+            }
             return block;
         }
         // decorators: ('@' named_expression NEWLINE )+ 

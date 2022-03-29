@@ -203,17 +203,20 @@ namespace Python.Parser
                     Expression = Parser.ParseStarExpressions()
                 };
             }
+            int previous = Parser.Position;
             try
             {
                 Expression ex = ParseAssignment();
                 if (ex == null)
                 {
+                    Parser.RewindTo(previous);
                     ex = Parser.ParseStarExpressions();
                 }
                 return ex;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Parser.RewindTo(previous);
                 return Parser.ParseStarExpressions();
             }
         }
@@ -621,6 +624,7 @@ namespace Python.Parser
             if (IsAugAssign(Parser.Peek().Value))
             {
                 string op = Parser.Peek().Value;
+                Parser.Advance();
                 Expression expr = Parser.Peek().Value == Keyword.Yield.Value ? Parser.AtomSubParser.ParseYieldExpr() : Parser.ParseStarExpressions();
                 return new EvaluatedExpression
                 {

@@ -44,7 +44,7 @@ namespace Python.Parser
             Parser.Accept(":");
             Parser.Advance();
             CodeBlock block = Parser.ParseBlock();
-            if (Parser.Peek().Value == Keyword.Elif.Value)
+            if (Parser.Position < Parser.Tokens.Count && Parser.Peek().Value == Keyword.Elif.Value)
             {
                 return new ConditionalCodeBlock
                 {
@@ -54,7 +54,7 @@ namespace Python.Parser
                     Statements = block.Statements
                 };
             }
-            else if (Parser.Peek().Value == Keyword.Else.Value)
+            else if (Parser.Position < Parser.Tokens.Count && Parser.Peek().Value == Keyword.Else.Value)
             {
                 return new ConditionalCodeBlock
                 {
@@ -82,7 +82,7 @@ namespace Python.Parser
             Parser.Accept(":");
             Parser.Advance();
             CodeBlock block = Parser.ParseBlock();
-            if (Parser.Peek().Value == Keyword.Elif.Value)
+            if (Parser.Position < Parser.Tokens.Count && Parser.Peek().Value == Keyword.Elif.Value)
             {
                 return new ConditionalCodeBlock
                 {
@@ -92,7 +92,7 @@ namespace Python.Parser
                     Statements = block.Statements
                 };
             }
-            else if (Parser.Peek().Value == Keyword.Else.Value)
+            else if (Parser.Position < Parser.Tokens.Count && Parser.Peek().Value == Keyword.Else.Value)
             {
                 return new ConditionalCodeBlock
                 {

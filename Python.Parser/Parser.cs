@@ -11,7 +11,8 @@ namespace Python.Parser
         public int Position { get; private set; }
         public Parser(List<Token> tokens)
         {
-            Tokens = tokens.Where(t => t.Type != TokenType.Comment).ToList(); // strip comments before parsing
+            Tokens = tokens.Where(t => t.Type != TokenType.Comment && t.Type != TokenType.Tab).ToList();
+            // strip comments before parsing, and skip tabs that aren't indent/dedent
             Position = 0;
         }
         public void RewindTo(int position)

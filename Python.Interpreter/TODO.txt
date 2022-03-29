@@ -276,13 +276,7 @@ block:
 
 star_expressions: OPERATORSUBPARSER
 
-
-assignment_expression:
-    | NAME ':=' ~ expression 
-
-named_expression:
-    | assignment_expression
-    | expression !':='
+assignment_expression: ATOMSUBPARSER
 
 annotated_rhs: yield_expr | star_expressions
 
@@ -348,9 +342,7 @@ for_if_clause:
     | ASYNC 'for' star_targets 'in' ~ disjunction ('if' disjunction )* 
     | 'for' star_targets 'in' ~ disjunction ('if' disjunction )* 
 
-yield_expr:
-    | 'yield' 'from' expression 
-    | 'yield' [star_expressions] 
+yield_expr: ATOMSUBPARSER 
 
 arguments: ARGUMENTSSUBPARSER
 

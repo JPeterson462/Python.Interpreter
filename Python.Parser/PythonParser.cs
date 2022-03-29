@@ -141,6 +141,10 @@ namespace Python.Parser
                 Advance();
                 expressions.Add(ParseStarExpression());
             }
+            if (expressions.Count == 1)
+            {
+                return expressions[0]; // don't make it a collection if we don't need to
+            }
             return new CollectionExpression
             {
                 Elements = expressions,

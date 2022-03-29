@@ -67,7 +67,8 @@ namespace Python.Interpreter
             //PythonParser p = ParsingUnitTest("a = 100 * c[0]");
 
             //PythonParser p = ParsingUnitTest("if x > 0:\n\ta = x\nelif x < 0:\n\ta = -1\nelse:\n\ta = 0");
-            PythonParser p = ParsingUnitTest("if x > 0:\n\ty = x\n\tx += 1");
+            //PythonParser p = ParsingUnitTest("if x > 0:\n\ty = x\n\tx += 1");
+            PythonParser p = ParsingUnitTest("while x > 0:\n\tx -= 1\n\tif x == y:\n\t\tbreak");
 
             //PrintTokens(p.Tokens);
 

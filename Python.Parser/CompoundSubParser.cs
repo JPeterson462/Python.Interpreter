@@ -30,12 +30,44 @@ namespace Python.Parser
             //    | with_stmt
             //    | for_stmt
             //    | try_stmt
-            //    | while_stmt
+            if (Parser.Peek().Value == Keyword.While.Value)
+            {
+                //    | while_stmt
+                return ParseWhileStmt();
+            }
             //    | match_stmt
             // FIXME
             return null;
         }
 
+        public ConditionalCodeBlock ParseWhileStmt()
+        {
+            Parser.Accept(Keyword.While.Value);
+            Parser.Advance();
+            Expression condition = Parser.ParseNamedExpression();
+            Parser.Accept(":");
+            Parser.Advance();
+            CodeBlock block = Parser.ParseBlock();
+            if (Parser.Position < Parser.Tokens.Count && Parser.Peek().Value == Keyword.Else.Value)
+            {
+                return new ConditionalCodeBlock
+                {
+                    Condition = condition,
+                    Type = ConditionalType.While,
+                    ChainedBlock = ParseElseStmt(),
+                    Statements = block.Statements
+                };
+            }
+            else
+            {
+                return new ConditionalCodeBlock
+                {
+                    Condition = condition,
+                    Type = ConditionalType.While,
+                    Statements = block.Statements
+                };
+            }
+        }
         public ConditionalCodeBlock ParseIfStmt()
         {
             Parser.Accept(Keyword.If.Value);

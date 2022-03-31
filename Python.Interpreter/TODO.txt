@@ -73,13 +73,8 @@ finally_block:
     | 'finally' ':' block 
 
 * ---- *
-match_stmt:
-    | "match" subject_expr ':' NEWLINE INDENT case_block+ DEDENT 
-subject_expr:
-    | star_named_expression ',' star_named_expressions? 
-    | named_expression
-case_block:
-    | "case" patterns guard? ':' block 
+match_stmt: COMPOUNDSUBPARSER
+
 guard: 'if' named_expression 
 
 patterns:
@@ -103,24 +98,10 @@ closed_pattern:
     | class_pattern
 
 # Literal patterns are used for equality and identity constraints
-literal_pattern:
-    | signed_number !('+' | '-') 
-    | complex_number 
-    | strings 
-    | 'None' 
-    | 'True' 
-    | 'False' 
+literal_pattern: PATTERNSUBPARSER
 
 # Literal expressions are used to restrict permitted mapping pattern keys
-literal_expr:
-    | signed_number !('+' | '-')
-    | complex_number
-    | strings
-    | 'None' 
-    | 'True' 
-    | 'False' 
-
-complex_number: PATTERNSUBPARSER
+literal_expr: PATTERNSUBPARSER
 
 capture_pattern:
     | pattern_capture_target 

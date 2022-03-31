@@ -38,7 +38,11 @@ namespace Python.Parser
                 //    | while_stmt
                 return ParseWhileStmt();
             }
-            //    | match_stmt
+            if (Parser.Peek().Value == Keyword.Match.Value)
+            {
+                //    | match_stmt
+                return ParseMatchStmt();
+            }
             // FIXME
             return null;
         }
@@ -173,12 +177,15 @@ namespace Python.Parser
             Parser.Accept(TokenType.IndentTab);
             Parser.Advance();
             List<ConditionalCodeBlock> cases = new List<ConditionalCodeBlock>();
-            while (Parser.Peek().Value == Keyword.Case.Value)
+            while (Parser.Position < Parser.Tokens.Count && Parser.Peek().Value == Keyword.Case.Value)
             {
                 cases.Add(ParseCaseStatement());
             }
-            Parser.Accept(TokenType.DedentTab);
-            Parser.Advance();
+            if (Parser.Position < Parser.Tokens.Count)
+            {
+                Parser.Accept(TokenType.DedentTab);
+                Parser.Advance();
+            }
             return new MatchExpression
             {
                 Subject = subject,

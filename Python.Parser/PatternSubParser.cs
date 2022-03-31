@@ -16,9 +16,97 @@ namespace Python.Parser
         //    | pattern
         public PatternExpression ParsePatterns()
         {
-            throw new NotImplementedException();
+            // FIXME
+            return new PatternExpression
+            {
+                Pattern = ParseLiteralPattern()
+            };
         }
 
+        //literal_pattern:
+        //    | signed_number !('+' | '-')
+        //    | complex_number
+        //    | strings
+        //    | 'None' 
+        //    | 'True' 
+        //    | 'False'
+        public Pattern ParseLiteralPattern()
+        {
+            string current = Parser.Peek().Value;
+            TokenType type = Parser.Peek().Type;
+            if (type == TokenType.Keyword && current == Keyword.True.Value)
+            {
+                Parser.Advance();
+                return new BooleanPattern
+                {
+                    Value = true
+                };
+            }
+            if (type == TokenType.Keyword && current == Keyword.False.Value)
+            {
+                Parser.Advance();
+                return new BooleanPattern
+                {
+                    Value = false
+                };
+            }
+            if (type == TokenType.Keyword && current == Keyword.None.Value)
+            {
+                Parser.Advance();
+                return new NonePattern();
+            }
+            if (type == TokenType.String)
+            {
+                Parser.Advance();
+                return new StringPattern
+                {
+                    Value = current
+                };
+            }
+            return ParseComplexNumber(); // should handle both signed_number and complex_number
+        }
+        //literal_expr:
+        //    | signed_number !('+' | '-')
+        //    | complex_number
+        //    | strings
+        //    | 'None' 
+        //    | 'True' 
+        //    | 'False'
+        public Pattern ParseLiteralExpr()
+        {
+            string current = Parser.Peek().Value;
+            TokenType type = Parser.Peek().Type;
+            if (type == TokenType.Keyword && current == Keyword.True.Value)
+            {
+                Parser.Advance();
+                return new BooleanPattern
+                {
+                    Value = true
+                };
+            }
+            if (type == TokenType.Keyword && current == Keyword.False.Value)
+            {
+                Parser.Advance();
+                return new BooleanPattern
+                {
+                    Value = false
+                };
+            }
+            if (type == TokenType.Keyword && current == Keyword.None.Value)
+            {
+                Parser.Advance();
+                return new NonePattern();
+            }
+            if (type == TokenType.String)
+            {
+                Parser.Advance();
+                return new StringPattern
+                {
+                    Value = current
+                };
+            }
+            return ParseComplexNumber(); // should handle both signed_number and complex_number
+        }
         //complex_number:
         //    | signed_real_number '+' imaginary_number 
         //    | signed_real_number '-' imaginary_number

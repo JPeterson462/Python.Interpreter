@@ -70,7 +70,8 @@ namespace Python.Interpreter
             //PythonParser p = ParsingUnitTest("if x > 0:\n\ta = x\nelif x < 0:\n\ta = -1\nelse:\n\ta = 0");
             //PythonParser p = ParsingUnitTest("if x > 0:\n\ty = x\n\tx += 1");
             //PythonParser p = ParsingUnitTest("while x > 0:\n\tx -= 1\n\tif x == y:\n\t\tbreak");
-            PythonParser p = ParsingUnitTest("3.2 - 2.6j");
+            //PythonParser p = ParsingUnitTest("3.2 - 2.6j");
+            PythonParser p = ParsingUnitTest("match n:\n\tcase True:\n\t\tx = 1\n\tcase False:\n\t\tx = -1");
 
             //PrintTokens(p.Tokens);
 
@@ -81,7 +82,13 @@ namespace Python.Interpreter
             //Expression e26 = p.OperatorSubParser.ParseSimpleStmt();
             //Expression e27 = p.OperatorSubParser.ParseSimpleStmt();
             //Expression e28 = p.CompoundSubParser.ParseCompoundStatement();
-            Pattern p1 = p.PatternSubParser.ParseComplexNumber();
+            //Pattern p1 = p.PatternSubParser.ParseComplexNumber();
+            /*Pattern pstring = ParsingUnitTest("\"hello world\"").PatternSubParser.ParseLiteralExpr();
+            Pattern pnone = ParsingUnitTest("None").PatternSubParser.ParseLiteralExpr();
+            Pattern pbool = ParsingUnitTest("True").PatternSubParser.ParseLiteralExpr();
+            Pattern pbool2 = ParsingUnitTest("False").PatternSubParser.ParseLiteralExpr();
+            Pattern pnum = ParsingUnitTest("3.2 - 2.6j").PatternSubParser.ParseLiteralExpr();*/
+            Expression e29 = p.CompoundSubParser.ParseMatchStmt();
 
             DateTime en = DateTime.UtcNow;
             TimeSpan parseoffset = en.Subtract(parstst);

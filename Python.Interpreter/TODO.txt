@@ -120,23 +120,7 @@ literal_expr:
     | 'True' 
     | 'False' 
 
-complex_number:
-    | signed_real_number '+' imaginary_number 
-    | signed_real_number '-' imaginary_number  
-
-signed_number:
-    | NUMBER
-    | '-' NUMBER 
-
-signed_real_number:
-    | real_number
-    | '-' real_number 
-
-real_number:
-    | NUMBER 
-
-imaginary_number:
-    | NUMBER 
+complex_number: PATTERNSUBPARSER
 
 capture_pattern:
     | pattern_capture_target 

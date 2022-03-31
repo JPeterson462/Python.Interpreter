@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Python.Core;
 using Python.Core.CodeBlocks;
+using Python.Core.Expressions;
 using Python.Parser;
 using Python.Tokenizer;
 
@@ -68,7 +69,8 @@ namespace Python.Interpreter
 
             //PythonParser p = ParsingUnitTest("if x > 0:\n\ta = x\nelif x < 0:\n\ta = -1\nelse:\n\ta = 0");
             //PythonParser p = ParsingUnitTest("if x > 0:\n\ty = x\n\tx += 1");
-            PythonParser p = ParsingUnitTest("while x > 0:\n\tx -= 1\n\tif x == y:\n\t\tbreak");
+            //PythonParser p = ParsingUnitTest("while x > 0:\n\tx -= 1\n\tif x == y:\n\t\tbreak");
+            PythonParser p = ParsingUnitTest("3.2 - 2.6j");
 
             //PrintTokens(p.Tokens);
 
@@ -78,7 +80,8 @@ namespace Python.Interpreter
             //Expression e25 = p.ParseBlock();
             //Expression e26 = p.OperatorSubParser.ParseSimpleStmt();
             //Expression e27 = p.OperatorSubParser.ParseSimpleStmt();
-            Expression e28 = p.CompoundSubParser.ParseCompoundStatement();
+            //Expression e28 = p.CompoundSubParser.ParseCompoundStatement();
+            Pattern p1 = p.PatternSubParser.ParseComplexNumber();
 
             DateTime en = DateTime.UtcNow;
             TimeSpan parseoffset = en.Subtract(parstst);

@@ -105,7 +105,44 @@ namespace Python.Parser
                     Value = current
                 };
             }
-            return ParseComplexNumber(); // should handle both signed_number and complex_number
+            // try to parse as signed_number
+            if (current == "-")
+            {
+                if (Parser.Peek(2).Value != "+" && Parser.Peek(2).Value != "-")
+                {
+                    string value = Parser.Peek(1).Value;
+                    NumberPattern pattern = new NumberPattern();
+                    if (value.EndsWith("j"))
+                    {
+                        pattern.ImaginaryPart = -1 * double.Parse(value.Substring(0, value.Length - 1));
+                    }
+                    else
+                    {
+                        pattern.RealPart = -1 * double.Parse(value.Substring(0, value.Length - 1));
+                    }
+                    Parser.Advance(2);
+                    return pattern;
+                }
+            }
+            else
+            {
+                if (Parser.Peek(1).Value != "+" && Parser.Peek(1).Value != "-")
+                {
+                    string value = Parser.Peek().Value;
+                    NumberPattern pattern = new NumberPattern();
+                    if (value.EndsWith("j"))
+                    {
+                        pattern.ImaginaryPart = double.Parse(value.Substring(0, value.Length - 1));
+                    }
+                    else
+                    {
+                        pattern.RealPart = double.Parse(value.Substring(0, value.Length - 1));
+                    }
+                    Parser.Advance(1);
+                    return pattern;
+                }
+            }
+            return ParseComplexNumber();
         }
         //complex_number:
         //    | signed_real_number '+' imaginary_number 

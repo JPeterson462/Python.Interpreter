@@ -101,17 +101,7 @@ value_pattern: PATTERNSUBPARSER
 
 sequence_pattern: PATTERNSUBPARSER 
 
-mapping_pattern:
-    | '{' '}' 
-    | '{' double_star_pattern ','? '}' 
-    | '{' items_pattern ',' double_star_pattern ','? '}' 
-    | '{' items_pattern ','? '}' 
-items_pattern:
-    | ','.key_value_pattern+
-key_value_pattern:
-    | (literal_expr | attr) ':' pattern 
-double_star_pattern:
-    | '**' pattern_capture_target 
+mapping_pattern: PATTERNSUBPARSER
 
 class_pattern:
     | name_or_attr '(' ')' 

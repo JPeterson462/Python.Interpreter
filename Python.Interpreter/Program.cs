@@ -73,7 +73,8 @@ namespace Python.Interpreter
             //PythonParser p = ParsingUnitTest("3.2 - 2.6j");
             //PythonParser p = ParsingUnitTest("match n:\n\tcase True:\n\t\tx = 1\n\tcase False:\n\t\tx = -1");
             //PythonParser p = ParsingUnitTest("[\"elem\", *rest]");
-            PythonParser p = ParsingUnitTest("[\"go\", (\"north\" | \"south\" | \"east\" | \"west\")]");
+            //PythonParser p = ParsingUnitTest("[\"go\", (\"north\" | \"south\" | \"east\" | \"west\")]");
+            PythonParser p = ParsingUnitTest("{ valid: True, count: 1, }");
 
             //PrintTokens(p.Tokens);
 

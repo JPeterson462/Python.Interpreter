@@ -54,8 +54,6 @@ namespace Python.Parser
                 Parts = parts
             };
         }
-
-
         //closed_pattern:
         //    | literal_pattern
         //    | capture_pattern
@@ -89,13 +87,16 @@ namespace Python.Parser
             int previous = Parser.Position;
             try
             {
-                // value_pattern
-                Pattern p = ParseValuePattern();
-                if (p != null)
+                if (Parser.Peek().Type == TokenType.Variable)
                 {
-                    return p;
+                    // value_pattern
+                    Pattern p = ParseValuePattern();
+                    if (p != null)
+                    {
+                        return p;
+                    }
+                    Parser.RewindTo(previous);
                 }
-                Parser.RewindTo(previous);
             }
             catch (Exception)
             {
@@ -118,9 +119,121 @@ namespace Python.Parser
             if (Parser.Peek().Value == "{")
             {
                 // mapping_pattern
+                return ParseMappingPattern();
             }
             // class_pattern
             throw new NotImplementedException();
+        }
+        // mapping_pattern:
+        //    | '{' '}' 
+        //    | '{' double_star_pattern ','? '}' 
+        //    | '{' items_pattern ',' double_star_pattern ','? '}' 
+        //    | '{' items_pattern ','? '}'
+        public DictionaryPattern ParseMappingPattern()
+        {
+            Parser.Accept("{");
+            Parser.Advance();
+            DictionaryPattern pattern = new DictionaryPattern();
+            if (Parser.Peek().Value == "}")
+            {
+                Parser.Advance();
+                return pattern;
+            }
+            else if (Parser.Peek().Value == "**")
+            {
+                Pattern p = ParseDoubleStarPattern();
+                bool open = false;
+                if (Parser.Peek().Value == ",")
+                {
+                    Parser.Advance();
+                    open = true;
+                }
+                Parser.Accept("}");
+                Parser.Advance();
+                pattern.ExpandedEntry = p;
+                pattern.IsOpen = open;
+                return pattern;
+            }
+            else
+            {
+                List<Tuple<Pattern, Pattern>> items = ParseItemsPattern();
+                pattern.Entries = new Dictionary<Pattern, Pattern>();
+                foreach (var item in items)
+                {
+                    pattern.Entries.Add(item.Item1, item.Item2);
+                }
+                if (Parser.Peek(1).Value == "**")
+                {
+                    Parser.Accept(",");
+                    Parser.Advance();
+                    pattern.ExpandedEntry = ParseDoubleStarPattern();
+                    bool open = false;
+                    if (Parser.Peek().Value == ",")
+                    {
+                        Parser.Advance();
+                        open = true;
+                    }
+                    Parser.Accept("}");
+                    Parser.Advance();
+                    pattern.IsOpen = open;
+                    return pattern;
+                }
+                else
+                {
+                    bool open = false;
+                    if (Parser.Peek().Value == ",")
+                    {
+                        Parser.Advance();
+                        open = true;
+                    }
+                    Parser.Accept("}");
+                    Parser.Advance();
+                    pattern.IsOpen = open;
+                    return pattern;
+                }
+            }
+        }
+        // items_pattern:
+        //    | ','.key_value_pattern+
+        public List<Tuple<Pattern, Pattern>> ParseItemsPattern()
+        {
+            List<Tuple<Pattern, Pattern>> items = new List<Tuple<Pattern, Pattern>>();
+            items.Add(ParseKeyValuePattern());
+            while (Parser.Peek().Value == "," && Parser.Peek(1).Value != "}")
+            {
+                Parser.Advance();
+                items.Add(ParseKeyValuePattern());
+            }
+            return items;
+        }
+        // key_value_pattern:
+        //    | (literal_expr | attr) ':' pattern
+        public Tuple<Pattern, Pattern> ParseKeyValuePattern()
+        {
+            Pattern key = null;
+            if (Parser.Peek().Value == Keyword.True.Value || Parser.Peek().Value == Keyword.False.Value ||
+                Parser.Peek().Value == Keyword.None.Value || Parser.Peek().Type == TokenType.String ||
+                Parser.Peek().Value == "-" || Parser.Peek().Type == TokenType.Number)
+            {
+                // literal_pattern
+                key = ParseLiteralPattern();
+            }
+            else
+            {
+                key = ParseAttr();
+            }
+            Parser.Accept(TokenType.BeginBlock);
+            Parser.Advance();
+            Pattern value = ParsePattern();
+            return new Tuple<Pattern, Pattern>(key, value);
+        }
+        // double_star_pattern:
+        //   | '**' pattern_capture_target
+        public Pattern ParseDoubleStarPattern()
+        {
+            Parser.Accept("**");
+            Parser.Advance();
+            return ParsePatternCaptureTarget();
         }
         //sequence_pattern:
         //    | '[' maybe_sequence_pattern? ']' 
@@ -184,7 +297,8 @@ namespace Python.Parser
             }
             return new SequencePattern
             {
-                Elements = elements
+                Elements = elements,
+                IsOpen = elements.Count == 1
             };
         }
         //maybe_sequence_pattern:
@@ -264,7 +378,6 @@ namespace Python.Parser
             string value = Parser.Peek().Value;
             parts.Add(value);
             Parser.Advance();
-            Parser.Accept(".");
             while (Parser.Peek().Value == ".")
             {
                 Parser.Advance();
@@ -356,6 +469,43 @@ namespace Python.Parser
                     Value = current
                 };
             }
+            // try to parse as signed_number
+            if (current == "-")
+            {
+                if (Parser.Peek(2).Value != "+" && Parser.Peek(2).Value != "-")
+                {
+                    string value = Parser.Peek(1).Value;
+                    NumberPattern pattern = new NumberPattern();
+                    if (value.EndsWith("j"))
+                    {
+                        pattern.ImaginaryPart = -1 * double.Parse(value.Substring(0, value.Length - 1));
+                    }
+                    else
+                    {
+                        pattern.RealPart = -1 * double.Parse(value.Substring(0, value.Length));
+                    }
+                    Parser.Advance(2);
+                    return pattern;
+                }
+            }
+            else
+            {
+                if (Parser.Peek(1).Value != "+" && Parser.Peek(1).Value != "-")
+                {
+                    string value = Parser.Peek().Value;
+                    NumberPattern pattern = new NumberPattern();
+                    if (value.EndsWith("j"))
+                    {
+                        pattern.ImaginaryPart = double.Parse(value.Substring(0, value.Length - 1));
+                    }
+                    else
+                    {
+                        pattern.RealPart = double.Parse(value.Substring(0, value.Length));
+                    }
+                    Parser.Advance(1);
+                    return pattern;
+                }
+            }
             return ParseComplexNumber(); // should handle both signed_number and complex_number
         }
         //literal_expr:
@@ -411,7 +561,7 @@ namespace Python.Parser
                     }
                     else
                     {
-                        pattern.RealPart = -1 * double.Parse(value.Substring(0, value.Length - 1));
+                        pattern.RealPart = -1 * double.Parse(value.Substring(0, value.Length));
                     }
                     Parser.Advance(2);
                     return pattern;
@@ -429,7 +579,7 @@ namespace Python.Parser
                     }
                     else
                     {
-                        pattern.RealPart = double.Parse(value.Substring(0, value.Length - 1));
+                        pattern.RealPart = double.Parse(value.Substring(0, value.Length));
                     }
                     Parser.Advance(1);
                     return pattern;

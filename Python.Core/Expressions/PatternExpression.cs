@@ -11,8 +11,15 @@ namespace Python.Core.Expressions
     {
         Tuple, List
     }
+    public class DictionaryPattern : Pattern
+    {
+        public bool IsOpen { get; set; }
+        public Dictionary<Pattern, Pattern> Entries { get; set; }
+        public Pattern ExpandedEntry { get; set; }
+    }
     public class SequencePattern : Pattern
     {
+        public bool IsOpen { get; set; }
         public SequenceType Type { get; set; }
         public List<Pattern> Elements { get; set; }
     }

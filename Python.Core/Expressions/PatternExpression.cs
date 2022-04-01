@@ -7,6 +7,17 @@ namespace Python.Core.Expressions
     {
 
     }
+    public class ClassPattern : Pattern
+    {
+        public AttributePattern Name { get; set; }
+        public List<Pattern> Values { get; set; }
+        public bool IsOpen { get; set; }
+    }
+    public class KeywordPattern : Pattern
+    {
+        public string Name { get; set; }
+        public Pattern Value { get; set; }
+    }
     public enum SequenceType
     {
         Tuple, List

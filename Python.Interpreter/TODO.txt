@@ -72,7 +72,6 @@ except_block:
 finally_block:
     | 'finally' ':' block 
 
-* ---- *
 match_stmt: COMPOUNDSUBPARSER
 
 guard: 'if' named_expression 
@@ -81,39 +80,6 @@ patterns:
     | open_sequence_pattern 
     | pattern
 pattern: PATTERNSUBPARSER
-closed_pattern:
-    | literal_pattern
-    | capture_pattern
-    | wildcard_pattern
-    | value_pattern
-    | group_pattern
-    | sequence_pattern
-    | mapping_pattern
-    | class_pattern
-
-# Literal patterns are used for equality and identity constraints
-literal_pattern: PATTERNSUBPARSER
-
-# Literal expressions are used to restrict permitted mapping pattern keys
-literal_expr: PATTERNSUBPARSER
-
-value_pattern: PATTERNSUBPARSER
-
-sequence_pattern: PATTERNSUBPARSER 
-
-mapping_pattern: PATTERNSUBPARSER
-
-class_pattern:
-    | name_or_attr '(' ')' 
-    | name_or_attr '(' positional_patterns ','? ')' 
-    | name_or_attr '(' keyword_patterns ','? ')' 
-    | name_or_attr '(' positional_patterns ',' keyword_patterns ','? ')' 
-positional_patterns:
-    | ','.pattern+ 
-keyword_patterns:
-    | ','.keyword_pattern+
-keyword_pattern:
-    | NAME '=' pattern 
 
 return_stmt: OPERATORSUBPARSER
 

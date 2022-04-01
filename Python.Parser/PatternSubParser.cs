@@ -122,7 +122,86 @@ namespace Python.Parser
                 return ParseMappingPattern();
             }
             // class_pattern
-            throw new NotImplementedException();
+            return ParseClassPattern();
+        }
+        //class_pattern:
+        //    | name_or_attr '(' ')' 
+        //    | name_or_attr '(' positional_patterns ','? ')' 
+        //    | name_or_attr '(' keyword_patterns ','? ')' 
+        //    | name_or_attr '(' positional_patterns ',' keyword_patterns ','? ')'
+        public ClassPattern ParseClassPattern()
+        {
+            AttributePattern name = ParseNameOrAttr() as AttributePattern;
+            Parser.Accept("(");
+            Parser.Advance();
+            List<Pattern> parameters = new List<Pattern>();
+            if (Parser.Peek(1).Value != "=")
+            {
+                parameters.AddRange(ParsePositionalPatterns());
+                if (Parser.Peek().Value == "," && Parser.Peek(1).Value != ")")
+                {
+                    Parser.Advance();
+                    parameters.AddRange(ParseKeywordPatterns());
+                }
+            }
+            else
+            {
+                parameters.AddRange(ParseKeywordPatterns());
+            }
+            bool open = false;
+            if (Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+                open = true;
+            }
+            Parser.Accept(")");
+            Parser.Advance();
+            return new ClassPattern
+            {
+                Name = name,
+                IsOpen = open,
+                Values = parameters
+            };
+        }
+        //positional_patterns:
+        //    | ','.pattern+
+        public List<Pattern> ParsePositionalPatterns()
+        {
+            List<Pattern> items = new List<Pattern>();
+            items.Add(ParsePattern());
+            while (Parser.Peek().Value == "," && Parser.Peek(2).Value != "=" && Parser.Peek(1).Value != ")")
+            {
+                Parser.Advance();
+                items.Add(ParsePattern());
+            }
+            return items;
+        }
+        //keyword_patterns:
+        //    | ','.keyword_pattern+
+        public List<Pattern> ParseKeywordPatterns()
+        {
+            List<Pattern> items = new List<Pattern>();
+            items.Add(ParseKeywordPattern());
+            while (Parser.Peek().Value == "," && Parser.Peek(1).Value != ")")
+            {
+                Parser.Advance();
+                items.Add(ParseKeywordPattern());
+            }
+            return items;
+        }
+        //keyword_pattern:
+        //    | NAME '=' pattern
+        public KeywordPattern ParseKeywordPattern()
+        {
+            string name = Parser.Peek().Value;
+            Parser.Advance();
+            Parser.Accept("=");
+            Parser.Advance();
+            return new KeywordPattern
+            {
+                Name = name,
+                Value = ParsePattern()
+            };
         }
         // mapping_pattern:
         //    | '{' '}' 

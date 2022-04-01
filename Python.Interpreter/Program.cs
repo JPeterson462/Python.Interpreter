@@ -74,7 +74,8 @@ namespace Python.Interpreter
             //PythonParser p = ParsingUnitTest("match n:\n\tcase True:\n\t\tx = 1\n\tcase False:\n\t\tx = -1");
             //PythonParser p = ParsingUnitTest("[\"elem\", *rest]");
             //PythonParser p = ParsingUnitTest("[\"go\", (\"north\" | \"south\" | \"east\" | \"west\")]");
-            PythonParser p = ParsingUnitTest("{ valid: True, count: 1, }");
+            //PythonParser p = ParsingUnitTest("{ valid: True, count: 1, }");
+            PythonParser p = ParsingUnitTest("kendo.ui.DataSource(1, is_set=True,)");
 
             //PrintTokens(p.Tokens);
 

@@ -80,13 +80,7 @@ guard: 'if' named_expression
 patterns:
     | open_sequence_pattern 
     | pattern
-pattern:
-    | as_pattern
-    | or_pattern
-as_pattern:
-    | or_pattern 'as' pattern_capture_target 
-or_pattern:
-    | '|'.closed_pattern+ 
+pattern: PATTERNSUBPARSER
 closed_pattern:
     | literal_pattern
     | capture_pattern
@@ -103,39 +97,9 @@ literal_pattern: PATTERNSUBPARSER
 # Literal expressions are used to restrict permitted mapping pattern keys
 literal_expr: PATTERNSUBPARSER
 
-capture_pattern:
-    | pattern_capture_target 
+value_pattern: PATTERNSUBPARSER
 
-pattern_capture_target:
-    | !"_" NAME !('.' | '(' | '=') 
-
-wildcard_pattern:
-    | "_" 
-
-value_pattern:
-    | attr !('.' | '(' | '=') 
-attr:
-    | name_or_attr '.' NAME 
-name_or_attr:
-    | attr
-    | NAME
-
-group_pattern:
-    | '(' pattern ')' 
-
-sequence_pattern:
-    | '[' maybe_sequence_pattern? ']' 
-    | '(' open_sequence_pattern? ')' 
-open_sequence_pattern:
-    | maybe_star_pattern ',' maybe_sequence_pattern? 
-maybe_sequence_pattern:
-    | ','.maybe_star_pattern+ ','? 
-maybe_star_pattern:
-    | star_pattern
-    | pattern
-star_pattern:
-    | '*' pattern_capture_target 
-    | '*' wildcard_pattern 
+sequence_pattern: PATTERNSUBPARSER 
 
 mapping_pattern:
     | '{' '}' 

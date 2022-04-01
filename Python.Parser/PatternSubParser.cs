@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Python.Core;
 using Python.Core.Expressions;
 
@@ -20,6 +21,298 @@ namespace Python.Parser
             return new PatternExpression
             {
                 Pattern = ParseLiteralPattern()
+            };
+        }
+        //pattern:
+        //    | as_pattern
+        //    | or_pattern
+        public Pattern ParsePattern()
+        {
+            OrPattern orPattern = ParseOrPattern();
+            if (Parser.Peek().Value == Keyword.As.Value)
+            {
+                //as_pattern:
+                //    | or_pattern 'as' pattern_capture_target
+                Parser.Advance();
+                orPattern.CaptureTarget = ParsePatternCaptureTarget();
+            }
+            return orPattern;
+        }
+        //or_pattern:
+        //    | '|'.closed_pattern+
+        public OrPattern ParseOrPattern()
+        {
+            List<Pattern> parts = new List<Pattern>();
+            parts.Add(ParseClosedPattern());
+            while (Parser.Peek().Value == "|")
+            {
+                Parser.Advance();
+                parts.Add(ParseClosedPattern());
+            }
+            return new OrPattern
+            {
+                Parts = parts
+            };
+        }
+
+
+        //closed_pattern:
+        //    | literal_pattern
+        //    | capture_pattern
+        //    | wildcard_pattern
+        //    | value_pattern
+        //    | group_pattern
+        //    | sequence_pattern
+        //    | mapping_pattern
+        //    | class_pattern
+        public Pattern ParseClosedPattern()
+        {
+            if (Parser.Peek().Value == "_")
+            {
+                // wildcard_pattern
+                Parser.Advance();
+                return new WildcardPattern();
+            }
+            if (Parser.Peek().Type == TokenType.Variable &&
+                (Parser.Peek(1).Value != "." && Parser.Peek(1).Value != "(" && Parser.Peek(1).Value != "="))
+            {
+                // capture_pattern
+                return ParseCapturePattern();
+            }
+            if (Parser.Peek().Value == Keyword.True.Value || Parser.Peek().Value == Keyword.False.Value ||
+                Parser.Peek().Value == Keyword.None.Value || Parser.Peek().Type == TokenType.String ||
+                Parser.Peek().Value == "-" || Parser.Peek().Type == TokenType.Number)
+            {
+                // literal_pattern
+                return ParseLiteralPattern();
+            }
+            int previous = Parser.Position;
+            try
+            {
+                // value_pattern
+                Pattern p = ParseValuePattern();
+                if (p != null)
+                {
+                    return p;
+                }
+                Parser.RewindTo(previous);
+            }
+            catch (Exception)
+            {
+                Parser.RewindTo(previous);
+            }
+            if (Parser.Peek().Value == "(")
+            {
+                // group_pattern
+                Parser.Advance();
+                Pattern p = ParsePattern();
+                Parser.Accept(")");
+                Parser.Advance();
+                return p;
+            }
+            if (Parser.Peek().Value == "[" || Parser.Peek().Value == "(")
+            {
+                // sequence_pattern
+                return ParseSequencePattern();
+            }
+            if (Parser.Peek().Value == "{")
+            {
+                // mapping_pattern
+            }
+            // class_pattern
+            throw new NotImplementedException();
+        }
+        //sequence_pattern:
+        //    | '[' maybe_sequence_pattern? ']' 
+        //    | '(' open_sequence_pattern? ')' 
+        public Pattern ParseSequencePattern()
+        {
+            if (Parser.Peek().Value == "[")
+            {
+                Parser.Advance();
+                if(Parser.Peek().Value != "]")
+                {
+                    SequencePattern p = ParseMaybeSequencePattern();
+                    Parser.Accept("]");
+                    Parser.Advance();
+                    p.Type = SequenceType.List;
+                    return p;
+                }
+                else
+                {
+                    return new SequencePattern
+                    {
+                        Type = SequenceType.List,
+                        Elements = new List<Pattern>()
+                    };
+                }
+            }
+            if (Parser.Peek().Value == "(")
+            {
+                Parser.Advance();
+                if (Parser.Peek().Value != ")")
+                {
+                    SequencePattern p = ParseOpenSequencePattern();
+                    Parser.Accept(")");
+                    Parser.Advance();
+                    p.Type = SequenceType.Tuple;
+                    return p;
+                }
+                else
+                {
+                    return new SequencePattern
+                    {
+                        Type = SequenceType.Tuple,
+                        Elements = new List<Pattern>()
+                    };
+                }
+            }
+            Parser.ThrowSyntaxError(Parser.Position);
+            return null; // shouldn't get here
+        }
+        //open_sequence_pattern:
+        //    | maybe_star_pattern ',' maybe_sequence_pattern?
+        public SequencePattern ParseOpenSequencePattern()
+        {
+            List<Pattern> elements = new List<Pattern>();
+            elements.Add(ParseMaybeStarPattern());
+            Parser.Accept(",");
+            while (Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+                elements.Add(ParseMaybeStarPattern());
+            }
+            return new SequencePattern
+            {
+                Elements = elements
+            };
+        }
+        //maybe_sequence_pattern:
+        //    | ','.maybe_star_pattern+ ','?
+        public SequencePattern ParseMaybeSequencePattern()
+        {
+            List<Pattern> elements = new List<Pattern>();
+            elements.Add(ParseMaybeStarPattern());
+            while (Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+                elements.Add(ParseMaybeStarPattern());
+            }
+            return new SequencePattern
+            {
+                Elements = elements
+            };
+        }
+        //maybe_star_pattern:
+        //    | star_pattern
+        //    | pattern
+        public Pattern ParseMaybeStarPattern()
+        {
+            if (Parser.Peek().Value == "*")
+            {
+                return ParseStarPattern();
+            }
+            else
+            {
+                return ParsePattern();
+            }
+        }
+
+        //star_pattern:
+        //    | '*' pattern_capture_target 
+        //    | '*' wildcard_pattern
+        public StarPattern ParseStarPattern()
+        {
+            Parser.Accept("*");
+            Parser.Advance();
+            if (Parser.Peek().Value == "_")
+            {
+                Parser.Advance();
+                return new StarPattern
+                {
+                    Pattern = new WildcardPattern()
+                };
+            }
+            else
+            {
+                return new StarPattern
+                {
+                    Pattern = ParsePatternCaptureTarget()
+                };
+            }
+        }
+
+        //value_pattern:
+        //    | attr !('.' | '(' | '=')
+        public Pattern ParseValuePattern()
+        {
+            AttributePattern attr = ParseAttr();
+            if (Parser.Peek().Value != "." && Parser.Peek().Value != "(" && Parser.Peek().Value != "=")
+            {
+                return attr;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        //attr:
+        //    | name_or_attr '.' NAME --> '.'NAME+
+        public AttributePattern ParseAttr()
+        {
+            List<string> parts = new List<string>();
+            string value = Parser.Peek().Value;
+            parts.Add(value);
+            Parser.Advance();
+            Parser.Accept(".");
+            while (Parser.Peek().Value == ".")
+            {
+                Parser.Advance();
+                parts.Add(Parser.Peek().Value);
+                Parser.Advance();
+            }
+            return new AttributePattern
+            {
+                Parts = parts
+            };
+        }
+        //name_or_attr:
+        //    | attr
+        //    | NAME
+        public Pattern ParseNameOrAttr()
+        {
+            if (Parser.Peek(1).Value == ".")
+            {
+                return ParseAttr();
+            }
+            else
+            {
+                string value = Parser.Peek().Value;
+                Parser.Advance();
+                return new AttributePattern
+                {
+                    Parts = new List<string>(new string[] { value })
+                };
+            }
+        }
+
+
+        //capture_pattern:
+        //    | pattern_capture_target
+        public Pattern ParseCapturePattern()
+        {
+            return ParsePatternCaptureTarget();
+        }
+        //pattern_capture_target:
+        //    | !"_" NAME !('.' | '(' | '=')
+        public Pattern ParsePatternCaptureTarget()
+        {
+            Parser.Accept(TokenType.Variable);
+            string name = Parser.Peek().Value;
+            Parser.Advance();
+            return new VariablePattern
+            {
+                Variable = name
             };
         }
 

@@ -27,15 +27,28 @@ namespace Python.Parser
             if (Parser.Peek().Value == "@" || (Parser.Peek().Value == Keyword.Async.Value && Parser.Peek(1).Value == Keyword.Def.Value)
                 || Parser.Peek().Value == Keyword.Def.Value)
             {
-                //    | function_def
-                return ParseFunctionDef();
+                int position = Parser.Position;
+                ParseDecorators();
+                if (Parser.Peek().Value == Keyword.Async.Value || Parser.Peek().Value == Keyword.Def.Value)
+                {
+                    //    | function_def
+                    return ParseFunctionDef();
+                }
+                else
+                {
+                    Parser.RewindTo(position);
+                }
             }
             if (Parser.Peek().Value == Keyword.If.Value)
             {
                 //    | if_stmt
                 return ParseIfStmt();
             }
-            //    | class_def
+            if (Parser.Peek().Value == "@" || Parser.Peek().Value == Keyword.Class.Value)
+            {
+                //    | class_def
+                return ParseClassDef();
+            }
             //    | with_stmt
             //    | for_stmt
             //    | try_stmt
@@ -574,6 +587,44 @@ namespace Python.Parser
             Parser.Accept("=");
             Parser.Advance();
             return Parser.ParseExpression();
+        }
+        //class_def:
+        //    | decorators class_def_raw 
+        //    | class_def_raw
+        public ClassCodeBlock ParseClassDef()
+        {
+            List<Expression> decorators = null;
+            if (Parser.Peek().Value == "@")
+            {
+                decorators = ParseDecorators();
+            }
+            ClassCodeBlock block = ParseClassDefRaw();
+            block.Decorators = decorators;
+            return block;
+        }
+        //class_def_raw:
+        //    | 'class' NAME['('[arguments] ')'] ':' block
+        public ClassCodeBlock ParseClassDefRaw()
+        {
+            Parser.Accept(Keyword.Class.Value);
+            Parser.Advance();
+            string name = Parser.Peek().Value;
+            Parser.Advance();
+            ClassCodeBlock block = new ClassCodeBlock
+            {
+                Name = name
+            };
+            if (Parser.Peek().Value == "(")
+            {
+                Parser.Advance();
+                block.Arguments = Parser.ArgumentsSubParser.ParseArguments();
+                Parser.Accept(")");
+                Parser.Advance();
+            }
+            Parser.Accept(":");
+            Parser.Advance();
+            block.Statements = Parser.ParseBlock().Statements;
+            return block;
         }
     }
 }

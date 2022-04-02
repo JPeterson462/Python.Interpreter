@@ -57,14 +57,6 @@ except_block:
 finally_block:
     | 'finally' ':' block 
 
-params: ...
-
-class_def:
-    | decorators class_def_raw 
-    | class_def_raw
-class_def_raw:
-    | 'class' NAME ['(' [arguments] ')' ] ':' block 
-
 expressions:
     | expression (',' expression )+ [','] 
     | expression ',' 

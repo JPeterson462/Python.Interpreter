@@ -10,11 +10,12 @@ namespace Python.Core.CodeBlocks
         public List<Expression> Decorators = new List<Expression>();
         public string Name { get; set; }
         public bool IsAsynchronous { get; set; }
-        public CollectionExpression Parameters { get; set; }
+        public List<Expression> Parameters { get; set; }
+        public Expression ReturnHint { get; set; }
 
         public override string ToString()
         {
-            return $"{(IsAsynchronous ? "async " : "")}{Name ?? "lambda "}({string.Join(", ", Parameters.Elements.Select(e => e.ToString()))})";
+            return $"{(IsAsynchronous ? "async " : "")}{Name ?? "lambda "}({string.Join(", ", Parameters.Select(e => e.ToString()))})";
         }
     }
 }

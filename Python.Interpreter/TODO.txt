@@ -57,17 +57,6 @@ except_block:
 finally_block:
     | 'finally' ':' block 
 
-function_def:
-    | decorators function_def_raw 
-    | function_def_raw
-
-function_def_raw:
-    | 'def' NAME '(' [params] ')' ['->' expression ] ':' [func_type_comment] block 
-    | ASYNC 'def' NAME '(' [params] ')' ['->' expression ] ':' [func_type_comment] block 
-func_type_comment:
-    | NEWLINE TYPE_COMMENT &(NEWLINE INDENT)   # Must be followed by indented block
-    | TYPE_COMMENT
-
 params:
     | parameters
 
@@ -93,47 +82,11 @@ star_etc:
     | '*' ',' param_maybe_default+ [kwds] 
     | kwds 
 
-kwds: '**' param_no_default 
-
-# One parameter.  This *includes* a following comma and type comment.
-#
-# There are three styles:
-# - No default
-# - With default
-# - Maybe with default
-#
-# There are two alternative forms of each, to deal with type comments:
-# - Ends in a comma followed by an optional type comment
-# - No comma, optional type comment, must be followed by close paren
-# The latter form is for a final parameter without trailing comma.
-#
-param_no_default:
-    | param ',' TYPE_COMMENT? 
-    | param TYPE_COMMENT? &')' 
-param_with_default:
-    | param default ',' TYPE_COMMENT? 
-    | param default TYPE_COMMENT? &')' 
-param_maybe_default:
-    | param default? ',' TYPE_COMMENT? 
-    | param default? TYPE_COMMENT? &')' 
-param: NAME annotation? 
-
-annotation: ':' expression 
-default: '=' expression 
-
-decorators: ('@' named_expression NEWLINE )+ 
-
 class_def:
     | decorators class_def_raw 
     | class_def_raw
 class_def_raw:
     | 'class' NAME ['(' [arguments] ')' ] ':' block 
-
-block:
-    | NEWLINE INDENT statements DEDENT 
-    | simple_stmts
-
-annotated_rhs: yield_expr | star_expressions
 
 expressions:
     | expression (',' expression )+ [','] 

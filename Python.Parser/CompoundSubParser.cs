@@ -318,7 +318,7 @@ namespace Python.Parser
         }
         //params:
         //    | parameters
-        public List<Expression> ParseParams()
+        public List<ParameterExpression> ParseParams()
         {
             return ParseParameters();
         }
@@ -329,23 +329,166 @@ namespace Python.Parser
         //    | param_no_default+ param_with_default*[star_etc] 
         //    | param_with_default+ [star_etc] 
         //    | star_etc
-        public List<Expression> ParseParameters()
+        public List<ParameterExpression> ParseParameters()
         {
-            throw new NotImplementedException();
+            int previous = Parser.Position;
+            try
+            {
+                List<ParameterExpression> parameters = ParseSlashNoDefault();
+                while (Parser.Peek(1).Value != "=" && Parser.Peek().Value != ")")
+                {
+                    parameters.Add(ParseParamNoDefault());
+                }
+                while (Parser.Peek(1).Value == "=" && Parser.Peek().Value != ")")
+                {
+                    parameters.Add(ParseParamWithDefault());
+                }
+                if (Parser.Peek().Value == "**" || Parser.Peek().Value == "*")
+                {
+                    parameters.AddRange(ParseStarEtc());
+                }
+                return parameters;
+            }
+            catch (Exception)
+            {
+                Parser.RewindTo(previous);
+            }
+            try
+            {
+                List<ParameterExpression> parameters = ParseSlashWithDefault();
+                while (Parser.Peek(1).Value == "=" && Parser.Peek().Value != ")")
+                {
+                    parameters.Add(ParseParamWithDefault());
+                }
+                if (Parser.Peek().Value == "**" || Parser.Peek().Value == "*")
+                {
+                    parameters.AddRange(ParseStarEtc());
+                }
+                return parameters;
+            }
+            catch (Exception)
+            {
+                Parser.RewindTo(previous);
+            }
+            if (Parser.Peek().Value != "**" && Parser.Peek().Value != "*")
+            {
+                List<ParameterExpression> parameters = new List<ParameterExpression>();
+                if (Parser.Peek(1).Value != "=")
+                {
+                    while (Parser.Peek(1).Value != "=" && Parser.Peek().Value != ")")
+                    {
+                        parameters.Add(ParseParamNoDefault());
+                    }
+                }
+                while (Parser.Peek(1).Value == "=" && Parser.Peek().Value != ")")
+                {
+                    parameters.Add(ParseParamWithDefault());
+                }
+                if (Parser.Peek().Value == "**" || Parser.Peek().Value == "*")
+                {
+                    parameters.AddRange(ParseStarEtc());
+                }
+                return parameters;
+            }
+            else
+            {
+                List<ParameterExpression> parameters = new List<ParameterExpression>();
+                if (Parser.Peek().Value == "**" || Parser.Peek().Value == "*")
+                {
+                    parameters.AddRange(ParseStarEtc());
+                }
+                return parameters;
+            }
         }
 
         //slash_no_default:
         //    | param_no_default+ '/' ',' 
-        //    | param_no_default+ '/' &')' 
+        //    | param_no_default+ '/' &')'
+        public List<ParameterExpression> ParseSlashNoDefault()
+        {
+            List<ParameterExpression> parameters = new List<ParameterExpression>();
+            while (Parser.Peek().Value != "/" && Parser.Peek().Value != ")")
+            {
+                parameters.Add(ParseParamNoDefault());
+            }
+            Parser.Accept("/");
+            Parser.Advance();
+            if (Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+            }
+            return parameters;
+        }
         //slash_with_default:
         //    | param_no_default* param_with_default+ '/' ',' 
         //    | param_no_default* param_with_default+ '/' &')' 
-
+        public List<ParameterExpression> ParseSlashWithDefault()
+        {
+            List<ParameterExpression> parameters = new List<ParameterExpression>();
+            while (Parser.Peek(1).Value != "=" && Parser.Peek().Value != ")")
+            {
+                parameters.Add(ParseParamNoDefault());
+            }
+            while (Parser.Peek(1).Value == "=" && Parser.Peek().Value != ")")
+            {
+                parameters.Add(ParseParamWithDefault());
+            }
+            Parser.Accept("/");
+            Parser.Advance();
+            if (Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+            }
+            return parameters;
+        }
         //star_etc:
         //    | '*' param_no_default param_maybe_default* [kwds] 
-        //    | '*' ',' param_maybe_default+ [kwds] 
+        //    | '*' ',' param_maybe_default+ [kwds]
+                    // PEP 3102
         //    | kwds
-
+        public List<ParameterExpression> ParseStarEtc()
+        {
+            if (Parser.Peek().Value == "**")
+            {
+                return new List<ParameterExpression>(new ParameterExpression[] { ParseKwds() });
+            }
+            Parser.Accept("*");
+            Parser.Advance();
+            if (Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+                List<ParameterExpression> parameters = new List<ParameterExpression>();
+                parameters.Add(ParseParamMaybeDefault());
+                while (Parser.Peek().Value != "**" && Parser.Peek().Value != ")")
+                {
+                    parameters.Add(ParseParamMaybeDefault());
+                }
+                if (Parser.Peek().Value == "**")
+                {
+                    parameters.Add(ParseKwds());
+                }
+                foreach (ParameterExpression ex in parameters)
+                {
+                    ex.KeywordOnly = true;
+                }
+                return parameters;
+            }
+            else
+            {
+                List<ParameterExpression> parameters = new List<ParameterExpression>();
+                parameters.Add(ParseParamNoDefault());
+                parameters[0].ListGenerator = true;
+                while (Parser.Peek().Value != "**" && Parser.Peek().Value != ")")
+                {
+                    parameters.Add(ParseParamMaybeDefault());
+                }
+                if (Parser.Peek().Value == "**")
+                {
+                    parameters.Add(ParseKwds());
+                }
+                return parameters;
+            }
+        }
         //kwds: '**' param_no_default
         public ParameterExpression ParseKwds()
         {

@@ -24,7 +24,7 @@ namespace Python.Parser
             Parser.Advance();
             return new FunctionCodeBlock
             {
-                Parameters = parameters,
+                LambdaParameters = parameters.Elements,
                 Statements = new List<Expression>
                 {
                     Parser.ParseExpression()
@@ -225,6 +225,13 @@ namespace Python.Parser
                     if (Parser.Peek().Value == "**")
                     {
                         values.Add(ParseLambdaKeywords());
+                    }
+                    foreach (var value in values)
+                    {
+                        if (value is LambdaParameterExpression ex)
+                        {
+                            ex.KeywordOnly = true;
+                        }
                     }
                     return new CollectionExpression
                     {

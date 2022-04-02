@@ -57,30 +57,7 @@ except_block:
 finally_block:
     | 'finally' ':' block 
 
-params:
-    | parameters
-
-parameters:
-    | slash_no_default param_no_default* param_with_default* [star_etc] 
-    | slash_with_default param_with_default* [star_etc] 
-    | param_no_default+ param_with_default* [star_etc] 
-    | param_with_default+ [star_etc] 
-    | star_etc 
-
-# Some duplication here because we can't write (',' | &')'),
-# which is because we don't support empty alternatives (yet).
-#
-slash_no_default:
-    | param_no_default+ '/' ',' 
-    | param_no_default+ '/' &')' 
-slash_with_default:
-    | param_no_default* param_with_default+ '/' ',' 
-    | param_no_default* param_with_default+ '/' &')' 
-
-star_etc:
-    | '*' param_no_default param_maybe_default* [kwds] 
-    | '*' ',' param_maybe_default+ [kwds] 
-    | kwds 
+params: ...
 
 class_def:
     | decorators class_def_raw 

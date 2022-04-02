@@ -7,6 +7,7 @@ namespace Python.Core.Expressions
     {
         public Expression Identifier { get; set; }
         public Expression Default { get; set; }
+        public bool KeywordOnly { get; set; }
 
         public override string ToString()
         {

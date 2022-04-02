@@ -24,10 +24,6 @@ statement_newline:
     | simple_stmts
     | NEWLINE 
     | ENDMARKER 
-simple_stmts: PYTHONPARSER
-# NOTE: assignment MUST precede expression, else parsing a simple assignment
-# will throw a SyntaxError.
-simple_stmt: PYTHONPARSER
 compound_stmt:
     | function_def
     | if_stmt
@@ -37,17 +33,6 @@ compound_stmt:
     | try_stmt
     | while_stmt
     | match_stmt
-
-# NOTE: annotated_rhs may start with 'yield'; yield_expr must start with 'yield'
-assignment: OPERATORSUBPARSER
-
-global_stmt: OPERATORSUBPARSER 
-
-import_stmt: OPERATORSUBPARSER
-
-if_stmt: COMPOUNDSUBPARSER
-
-while_stmt: COMPOUNDSUBPARSER
 
 for_stmt:
     | 'for' star_targets 'in' ~ star_expressions ':' [TYPE_COMMENT] block [else_block] 
@@ -71,12 +56,6 @@ except_block:
     | 'except' ':' block 
 finally_block:
     | 'finally' ':' block 
-
-match_stmt: COMPOUNDSUBPARSER
-
-guard: PATTERNSUBPARSER
-
-return_stmt: OPERATORSUBPARSER
 
 function_def:
     | decorators function_def_raw 
@@ -154,10 +133,6 @@ block:
     | NEWLINE INDENT statements DEDENT 
     | simple_stmts
 
-star_expressions: OPERATORSUBPARSER
-
-assignment_expression: ATOMSUBPARSER
-
 annotated_rhs: yield_expr | star_expressions
 
 expressions:
@@ -169,9 +144,6 @@ expression:
     | disjunction
     | lambdef
 
-lambdef: LAMBDASUBPARSER
-
-disjunction: OPERATIONSUBPARSER
 primary:
     | primary '.' NAME 
     | primary genexp 
@@ -179,7 +151,6 @@ primary:
     | primary '[' slices ']' 
     | atom
 
-slices: ATOMSUBPARSER
 atom:
     | NAME
     | 'True' 
@@ -221,14 +192,3 @@ for_if_clauses:
 for_if_clause:
     | ASYNC 'for' star_targets 'in' ~ disjunction ('if' disjunction )* 
     | 'for' star_targets 'in' ~ disjunction ('if' disjunction )* 
-
-yield_expr: ATOMSUBPARSER 
-
-arguments: ARGUMENTSSUBPARSER
-
-# NOTE: star_targets may contain *bitwise_or, targets may not.
-star_targets: ATOMSUBPARSER
-
-del_targets: OPERATORSUBPARSER
-
-t_primary: ATOMSUBPARSER

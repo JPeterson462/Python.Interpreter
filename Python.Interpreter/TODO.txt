@@ -74,12 +74,7 @@ finally_block:
 
 match_stmt: COMPOUNDSUBPARSER
 
-guard: 'if' named_expression 
-
-patterns:
-    | open_sequence_pattern 
-    | pattern
-pattern: PATTERNSUBPARSER
+guard: PATTERNSUBPARSER
 
 return_stmt: OPERATORSUBPARSER
 

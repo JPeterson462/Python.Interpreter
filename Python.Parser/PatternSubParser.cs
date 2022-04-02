@@ -17,10 +17,26 @@ namespace Python.Parser
         //    | pattern
         public PatternExpression ParsePatterns()
         {
-            // FIXME
+            int previous = Parser.Position;
+            try
+            {
+                Pattern p = ParseOpenSequencePattern();
+                if (p != null)
+                {
+                    return new PatternExpression
+                    {
+                        Pattern = p
+                    };
+                }
+                Parser.RewindTo(previous);
+            }
+            catch (Exception)
+            {
+                Parser.RewindTo(previous);
+            }
             return new PatternExpression
             {
-                Pattern = ParseLiteralPattern()
+                Pattern = ParsePattern()
             };
         }
         //pattern:

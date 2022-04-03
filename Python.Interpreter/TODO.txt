@@ -17,8 +17,6 @@ type_expressions:
     | '**' expression 
     | ','.expression+ 
 
-statements: statement+ 
-statement: compound_stmt  | simple_stmts 
 statement_newline:
     | compound_stmt NEWLINE 
     | simple_stmts

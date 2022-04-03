@@ -34,16 +34,6 @@ compound_stmt:
     | while_stmt
     | match_stmt
 
-with_stmt:
-    | 'with' '(' ','.with_item+ ','? ')' ':' block 
-    | 'with' ','.with_item+ ':' [TYPE_COMMENT] block 
-    | ASYNC 'with' '(' ','.with_item+ ','? ')' ':' block 
-    | ASYNC 'with' ','.with_item+ ':' [TYPE_COMMENT] block 
-
-with_item:
-    | expression 'as' star_target &(',' | ')' | ':') 
-    | expression 
-
 try_stmt:
     | 'try' ':' block finally_block 
     | 'try' ':' block except_block+ [else_block] [finally_block] 

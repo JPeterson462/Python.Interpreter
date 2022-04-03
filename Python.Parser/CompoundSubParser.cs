@@ -49,7 +49,11 @@ namespace Python.Parser
                 //    | class_def
                 return ParseClassDef();
             }
-            //    | with_stmt TODO
+            if (Parser.Peek().Value == Keyword.With.Value || (Parser.Peek().Value == Keyword.Async.Value && Parser.Peek(1).Value == Keyword.With.Value))
+            {
+                //    | with_stmt
+                return ParseWithStmt();
+            }
             if (Parser.Peek().Value == Keyword.For.Value || (Parser.Peek().Value == Keyword.Async.Value && Parser.Peek(1).Value == Keyword.For.Value))
             {
                 //    | for_stmt
@@ -70,6 +74,74 @@ namespace Python.Parser
             return null;
         }
 
+        //with_stmt:
+        //    | 'with' '(' ','.with_item+ ','? ')' ':' block 
+        //    | 'with' ','.with_item+ ':' [TYPE_COMMENT] block 
+        //    | ASYNC 'with' '(' ','.with_item+ ','? ')' ':' block 
+        //    | ASYNC 'with' ','.with_item+ ':' [TYPE_COMMENT]
+        //        block
+        public WithCodeBlock ParseWithStmt()
+        {
+            bool isAsynchronous = false;
+            if (Parser.Peek().Value == Keyword.Async.Value)
+            {
+                isAsynchronous = true;
+                Parser.Advance();
+            }
+            Parser.Accept(Keyword.With.Value);
+            Parser.Advance();
+            WithCodeBlock block = new WithCodeBlock
+            {
+                IsAsynchronous = isAsynchronous
+            };
+            if (Parser.Peek().Value == "(")
+            {
+                Parser.Advance();
+                List<WithItem> withItems = new List<WithItem>();
+                withItems.Add(ParseWithItem());
+                while (Parser.Peek().Value == ",")
+                {
+                    Parser.Advance();
+                    withItems.Add(ParseWithItem());
+                }
+                block.WithItems = withItems;
+                Parser.Accept(")");
+                Parser.Advance();
+            }
+            else
+            {
+                List<WithItem> withItems = new List<WithItem>();
+                withItems.Add(ParseWithItem());
+                while (Parser.Peek().Value == ",")
+                {
+                    Parser.Advance();
+                    withItems.Add(ParseWithItem());
+                }
+                block.WithItems = withItems;
+            }
+            Parser.Accept(":");
+            Parser.Advance();
+            // TODO TYPE_COMMENTS?
+            block.Statements = Parser.ParseBlock().Statements;
+            return block;
+        }
+        //with_item:
+        //    | expression 'as' star_target &(',' | ')' | ':') 
+        //    | expression
+        public WithItem ParseWithItem()
+        {
+            Expression item = Parser.ParseExpression();
+            WithItem withItem = new WithItem
+            {
+                Item = item
+            };
+            if (Parser.Peek().Value == Keyword.As.Value)
+            {
+                Parser.Advance();
+                withItem.Target = Parser.AtomSubParser.ParseStarTarget();
+            }
+            return withItem;
+        }
         //for_stmt:
         //    | 'for' star_targets 'in' ~star_expressions ':' [TYPE_COMMENT] block[else_block] 
         //    | ASYNC 'for' star_targets 'in' ~star_expressions ':' [TYPE_COMMENT] block[else_block]

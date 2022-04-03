@@ -49,9 +49,13 @@ namespace Python.Parser
                 //    | class_def
                 return ParseClassDef();
             }
-            //    | with_stmt
-            //    | for_stmt
-            //    | try_stmt
+            //    | with_stmt TODO
+            if (Parser.Peek().Value == Keyword.For.Value || (Parser.Peek().Value == Keyword.Async.Value && Parser.Peek(1).Value == Keyword.For.Value))
+            {
+                //    | for_stmt
+                return ParseForStmt();
+            }
+            //    | try_stmt TODO
             if (Parser.Peek().Value == Keyword.While.Value)
             {
                 //    | while_stmt
@@ -66,6 +70,42 @@ namespace Python.Parser
             return null;
         }
 
+        //for_stmt:
+        //    | 'for' star_targets 'in' ~star_expressions ':' [TYPE_COMMENT] block[else_block] 
+        //    | ASYNC 'for' star_targets 'in' ~star_expressions ':' [TYPE_COMMENT] block[else_block]
+        public IterableCodeBlock ParseForStmt()
+        {
+            bool isAsynchronous = false;
+            if (Parser.Peek().Value == Keyword.Async.Value)
+            {
+                isAsynchronous = true;
+                Parser.Advance();
+            }
+            Parser.Accept(Keyword.For.Value);
+            Parser.Advance();
+            var targets = Parser.AtomSubParser.ParseStarTargets();
+            Parser.Accept(Keyword.In.Value);
+            Parser.Advance();
+            var generators = Parser.ParseStarExpressions();
+            Parser.Accept(":");
+            Parser.Advance();
+            // TODO TYPE_COMMENT?
+            var block = Parser.ParseBlock();
+            IterableCodeBlock codeBlock = new IterableCodeBlock
+            {
+                Targets = targets.Elements,
+                Generators = generators is CollectionExpression ? (generators as CollectionExpression).Elements
+                                                            : new List<Expression>(new Expression[] { generators }),
+                IsAsynchronous = isAsynchronous,
+                Statements = block.Statements
+            };
+            if (Parser.Position < Parser.Tokens.Count && Parser.Peek().Value == Keyword.Else.Value)
+            {
+                var elseBlock = ParseElseStmt();
+                codeBlock.ChainedCodeBlock = elseBlock;
+            }
+            return codeBlock;
+        }
         public ConditionalCodeBlock ParseWhileStmt()
         {
             Parser.Accept(Keyword.While.Value);

@@ -34,10 +34,6 @@ compound_stmt:
     | while_stmt
     | match_stmt
 
-for_stmt:
-    | 'for' star_targets 'in' ~ star_expressions ':' [TYPE_COMMENT] block [else_block] 
-    | ASYNC 'for' star_targets 'in' ~ star_expressions ':' [TYPE_COMMENT] block [else_block] 
-
 with_stmt:
     | 'with' '(' ','.with_item+ ','? ')' ':' block 
     | 'with' ','.with_item+ ':' [TYPE_COMMENT] block 

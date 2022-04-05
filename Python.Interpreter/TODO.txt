@@ -1,6 +1,16 @@
 ﻿PARSER:
 
 speed up current try-catch parsing approach (error flags, return null)
+    PatternSubParser.ParseClosedPattern
+    PatternSubParser.ParsePatterns
+    OperatorSubParser.ParseAssignment
+    OperatorSubParser.ParseDelTarget
+    OperatorSubParser.ParseSimpleStmt
+    CompoundSubParser.ParseParameters
+    AtomSubParser.ParseTargetWithStarAtom
+    AtomSubParser.ParseAtom
+    AtomSubParser._ParseTPrimary
+    AtomSubParser.ParsePrimary
 
 matrix multiplication operator
 

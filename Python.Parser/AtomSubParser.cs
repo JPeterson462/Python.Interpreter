@@ -77,6 +77,66 @@ namespace Python.Parser
                 };
             }
         }
+        //primary:
+        //    | primary '.' NAME 
+        //    | primary genexp 
+        //    | primary '(' [arguments] ')' 
+        //    | primary '[' slices ']' 
+        //    | atom
+        public Expression ParsePrimary()
+        {
+            Expression atom = ParseAtom();
+            Token next = Parser.Peek();
+            while (next.Type == TokenType.BeginParameters || next.Type == TokenType.BeginList || next.Type == TokenType.ObjectReference
+                || next.Value == "(" || next.Value == "[" || next.Value == ".")
+            {
+                if (Parser.Peek().Value == "." || Parser.Peek().Type == TokenType.ObjectReference)
+                {
+                    Parser.Advance();
+                    atom = new EvaluatedExpression
+                    {
+                        LeftHandValue = atom,
+                        IsObjectReference = true,
+                        RightHandValue = ParseAtom()
+                    };
+                }
+                else if (Parser.Peek().Value == "[" || Parser.Peek().Type == TokenType.BeginList)
+                {
+                    Parser.Advance();
+                    atom = new EvaluatedExpression
+                    {
+                        LeftHandValue = atom,
+                        IsArrayAccessor = true,
+                        RightHandValue = ParseSlices()
+                    };
+                    Parser.Accept(TokenType.EndList);
+                    Parser.Advance();
+                }
+                else if (Parser.Peek().Value == "(" || Parser.Peek().Type == TokenType.BeginParameters)
+                {
+                    int position = Parser.Position;
+                    try
+                    {
+                        atom = ParseGenexp();
+                    }
+                    catch (Exception ex)
+                    {
+                        Parser.RewindTo(position);
+                        Parser.Advance();
+                        atom = new EvaluatedExpression
+                        {
+                            LeftHandValue = atom,
+                            IsFunctionCall = true,
+                            RightHandValue = Parser.ArgumentsSubParser.ParseArguments()
+                        };
+                        Parser.Accept(TokenType.EndParameters);
+                        Parser.Advance();
+                    }
+                }
+                next = Parser.Peek();
+            }
+            return atom;
+        }
         // t_primary:
         //   | t_primary '.' NAME &t_lookahead 
         //   | t_primary '[' slices ']' &t_lookahead 

@@ -1,6 +1,5 @@
 ﻿# PEG grammar for Python
 
-
 file: [statements] ENDMARKER 
 interactive: statement_newline 
 eval: expressions NEWLINE* ENDMARKER 
@@ -28,11 +27,5 @@ expressions:
     | expression ',' 
     | expression
 
-primary:
-    | primary '.' NAME 
-    | primary genexp 
-    | primary '(' [arguments] ')' 
-    | primary '[' slices ']' 
-    | atom
-
 bytes and formatted strings
+speed up current try-catch parsing approach (error flags, return null)

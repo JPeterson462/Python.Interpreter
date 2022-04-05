@@ -619,5 +619,139 @@ namespace Python.Parser
                 Target = target
             };
         }
+        // set: '{' star_named_expressions '}'
+        public CollectionExpression ParseSet()
+        {
+            Parser.Accept("{");
+            Parser.Advance();
+            List<Expression> elements = new List<Expression>();
+            elements.Add(Parser.ParseStarNamedExpression());
+            while (Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+                elements.Add(Parser.ParseStarNamedExpression());
+            }
+            Parser.Accept("}");
+            Parser.Advance();
+            return new CollectionExpression
+            {
+                Elements = elements,
+                Type = CollectionType.Set
+            };
+        }
+
+        // setcomp:
+        //    | '{' named_expression for_if_clauses '}'
+        public CollectionExpression ParseSetcomp()
+        {
+            Parser.Accept("{");
+            Parser.Advance();
+            Expression target = Parser.ParseNamedExpression();
+            var generator = ParseForIfClauses();
+            GeneratorExpression expr = new GeneratorExpression
+            {
+                Generator = new CollectionExpression
+                {
+                    Elements = generator,
+                    Type = CollectionType.List
+                },
+                Target = target
+            };
+            Parser.Accept("}");
+            Parser.Advance();
+            return new CollectionExpression
+            {
+                Elements = new List<Expression>(new Expression[] { expr }),
+                Type = CollectionType.Dictionary
+            };
+        }
+
+        // dict:
+        //    | '{' [double_starred_kvpairs] '}'
+        public CollectionExpression ParseDict()
+        {
+            Parser.Accept("{");
+            Parser.Advance();
+            var pairs = ParseDoubleStarredKvpairs();
+            Parser.Accept("}");
+            Parser.Advance();
+            return new CollectionExpression
+            {
+                Elements = pairs,
+                Type = CollectionType.Dictionary
+            };
+        }
+        //
+        // dictcomp:
+        //    | '{' kvpair for_if_clauses '}'
+        public CollectionExpression ParseDictcomp()
+        {
+            Parser.Accept("{");
+            Parser.Advance();
+            Expression target = ParseKvpair();
+            var generator = ParseForIfClauses();
+            GeneratorExpression expr = new GeneratorExpression
+            {
+                Generator = new CollectionExpression
+                {
+                    Elements = generator,
+                    Type = CollectionType.List
+                },
+                Target = target
+            };
+            Parser.Accept("}");
+            Parser.Advance();
+            return new CollectionExpression
+            {
+                Elements = new List<Expression>(new Expression[] { expr }),
+                Type = CollectionType.Dictionary
+            };
+        }
+
+        //double_starred_kvpairs: ','.double_starred_kvpair+ [',']
+        public List<Expression> ParseDoubleStarredKvpairs()
+        {
+            List<Expression> elements = new List<Expression>();
+            elements.Add(ParseDoubleStarredKvpair());
+            while (Parser.Peek().Value == ",")
+            {
+                Parser.Advance();
+                elements.Add(ParseDoubleStarredKvpair());
+            }
+            return elements;
+        }
+        //double_starred_kvpair:
+        //    | '**' bitwise_or 
+        //    | kvpair
+        public Expression ParseDoubleStarredKvpair()
+        {
+            if (Parser.Peek().Value == "**")
+            {
+                Parser.Advance();
+                Expression bitwiseOr = Parser.OperationSubParser.ParseBitwiseOr();
+                return new OperatorExpression
+                {
+                    Operator = Operator.Exponentiation,
+                    Expression = bitwiseOr
+                };
+            }
+            else
+            {
+                return ParseKvpair();
+            }
+        }
+        //kvpair: expression ':' expression
+        public KeyValueExpression ParseKvpair()
+        {
+            Expression key = Parser.ParseExpression();
+            Parser.Accept(":");
+            Parser.Advance();
+            Expression value = Parser.ParseExpression();
+            return new KeyValueExpression
+            {
+                Key = key,
+                Value = value
+            };
+        }
     }
 }

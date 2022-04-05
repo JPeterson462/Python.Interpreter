@@ -83,7 +83,11 @@ namespace Python.Interpreter
             //PythonParser p = ParsingUnitTest("for var1 in exp1 if exp2 for var2 in exp3 if exp4");
             //PythonParser p = ParsingUnitTest("[x for x in S]");
             //PythonParser p = ParsingUnitTest("(True, 1)");
-            PythonParser p = ParsingUnitTest("(x for var1 in exp1)");
+            //PythonParser p = ParsingUnitTest("(x for var1 in exp1)");
+            //PythonParser p = ParsingUnitTest("{x: True, len: 100}");
+            //PythonParser p = ParsingUnitTest("{ 1,2,3 }");
+            //PythonParser p = ParsingUnitTest("{ x for x in S }");
+            PythonParser p = ParsingUnitTest("{ **src, more: True }");
 
             //PrintTokens(p.Tokens);
 
@@ -109,7 +113,7 @@ namespace Python.Interpreter
             //Expression e33 = p.CompoundSubParser.ParseForStmt();
             //Expression e34 = p.CompoundSubParser.ParseTryStmt();
             //var e35 = p.AtomSubParser.ParseForIfClauses();
-            var e36 = p.AtomSubParser.ParseAtom();
+            var e36 = p.AtomSubParser.ParseDict();
 
             DateTime en = DateTime.UtcNow;
             TimeSpan parseoffset = en.Subtract(parstst);

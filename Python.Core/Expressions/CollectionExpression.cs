@@ -7,7 +7,7 @@ namespace Python.Core.Expressions
     public enum CollectionType
     {
         List, Tuple, GeneratedList, GeneratedTuple, Unknown, Slices, UnpackedDictionary,
-        Generator
+        Generator, Dictionary, Set
     }
     public class CollectionExpression : Expression
     {

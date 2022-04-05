@@ -12,6 +12,20 @@ namespace Python.Parser
         {
             Parser = parser;
         }
+        //for_if_clauses:
+        //    | for_if_clause+
+        public List<Expression> ParseForIfClauses()
+        {
+            List<Expression> clauses = new List<Expression>();
+            while (Parser.Peek().Value == Keyword.Async.Value || Parser.Peek().Value == Keyword.For.Value)
+            {
+                clauses.Add(ParseForIfClause());
+            }
+            return clauses;
+        }
+        //for_if_clause:
+        //    | ASYNC 'for' star_targets 'in' ~disjunction('if' disjunction )* 
+        //    | 'for' star_targets 'in' ~disjunction('if' disjunction )*
         public Expression ParseForIfClause()
         {
             bool isAsync = false;
@@ -21,8 +35,24 @@ namespace Python.Parser
                 isAsync = true;
             }
             Parser.Accept(Keyword.For.Value);
-
-            throw new NotImplementedException();
+            Parser.Advance();
+            Expression target = ParseStarTargets();
+            Parser.Accept(Keyword.In.Value);
+            Parser.Advance();
+            Expression group = Parser.OperationSubParser.ParseDisjunction();
+            List<Expression> conditions = new List<Expression>();
+            while (Parser.Peek().Value == Keyword.If.Value)
+            {
+                Parser.Advance();
+                conditions.Add(Parser.OperationSubParser.ParseDisjunction());
+            }
+            return new ForIfGeneratorExpression
+            {
+                IsAsynchronous = isAsync,
+                Targets = target,
+                Group = group,
+                Conditions = conditions
+            };
         }
         public Expression ParseYieldExpr()
         {

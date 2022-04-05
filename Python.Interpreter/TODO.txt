@@ -71,8 +71,5 @@ double_starred_kvpair:
     | '**' bitwise_or 
     | kvpair
 kvpair: expression ':' expression 
-for_if_clauses:
-    | for_if_clause+ 
-for_if_clause:
-    | ASYNC 'for' star_targets 'in' ~ disjunction ('if' disjunction )* 
-    | 'for' star_targets 'in' ~ disjunction ('if' disjunction )* 
+
+bytes and formatted strings

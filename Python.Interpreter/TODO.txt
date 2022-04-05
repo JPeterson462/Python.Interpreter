@@ -1,31 +1,4 @@
 ﻿# PEG grammar for Python
 
-file: [statements] ENDMARKER 
-interactive: statement_newline 
-eval: expressions NEWLINE* ENDMARKER 
-func_type: '(' [type_expressions] ')' '->' expression NEWLINE* ENDMARKER 
-fstring: star_expressions
-
-# type_expressions allow */** but ignore them
-type_expressions:
-    | ','.expression+ ',' '*' expression ',' '**' expression 
-    | ','.expression+ ',' '*' expression 
-    | ','.expression+ ',' '**' expression 
-    | '*' expression ',' '**' expression 
-    | '*' expression 
-    | '**' expression 
-    | ','.expression+ 
-
-statement_newline:
-    | compound_stmt NEWLINE 
-    | simple_stmts
-    | NEWLINE 
-    | ENDMARKER 
-
-expressions:
-    | expression (',' expression )+ [','] 
-    | expression ',' 
-    | expression
-
 bytes and formatted strings
 speed up current try-catch parsing approach (error flags, return null)

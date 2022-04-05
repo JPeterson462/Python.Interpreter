@@ -84,10 +84,12 @@ namespace Python.Interpreter
             //PythonParser p = ParsingUnitTest("[x for x in S]");
             //PythonParser p = ParsingUnitTest("(True, 1)");
             //PythonParser p = ParsingUnitTest("(x for var1 in exp1)");
-            PythonParser p = ParsingUnitTest("{x: True, len: 100}");
+            //PythonParser p = ParsingUnitTest("{x: True, len: 100}");
             //PythonParser p = ParsingUnitTest("{ 1,2,3 }");
             //PythonParser p = ParsingUnitTest("{ x for x in S }");
             //PythonParser p = ParsingUnitTest("{ **src, more: True }");
+
+            PythonParser p = ParsingUnitTest("f\"abc{de}\"");
 
             //PrintTokens(p.Tokens);
 

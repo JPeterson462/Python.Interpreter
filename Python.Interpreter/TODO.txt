@@ -1,4 +1,4 @@
 ﻿# PEG grammar for Python
 
-bytes and formatted strings
+type comments on functions
 speed up current try-catch parsing approach (error flags, return null)

@@ -207,12 +207,20 @@ namespace Python.Parser
             Token token = Parser.Peek();
             if (token.Value == Keyword.True.Value || token.Value == Keyword.False.Value ||
                 token.Value == Keyword.None.Value || token.Type == TokenType.Number ||
-                token.Type == TokenType.String || token.Type == TokenType.Variable)
+                token.Type == TokenType.String || token.Type == TokenType.Variable
+                || token.Type == TokenType.Bytes || token.Type == TokenType.Formatted)
             {
+                bool isBytesString = token.Type == TokenType.Bytes;
+                bool isFormattedString = token.Type == TokenType.Formatted;
+                if (isFormattedString || isBytesString)
+                {
+                    Parser.Advance();
+                    token = Parser.Peek();
+                }
                 bool isBoolean = token.Value == Keyword.True.Value || token.Value == Keyword.False.Value;
                 bool isIntegerNumber = token.Type == TokenType.Number && !token.Value.Contains(".");
                 bool isFloatingPointNumber = token.Type == TokenType.Number && token.Value.Contains(".");
-                bool isString = token.Type == TokenType.String;
+                bool isString = token.Type == TokenType.String || isBytesString || isFormattedString;
                 Parser.Advance();
                 return new SimpleExpression
                 {
@@ -221,6 +229,8 @@ namespace Python.Parser
                                 token.Value == Keyword.True.Value || token.Value == Keyword.False.Value ||
                                 token.Value == Keyword.None.Value,
                     IsVariable = token.Type == TokenType.Variable,
+                    IsBytesString = isBytesString,
+                    IsFormattedString = isFormattedString,
                     ConstantType = isBoolean ? typeof(bool) :
                                         (isString ? typeof(string) :
                                             (isIntegerNumber ? typeof(int) :

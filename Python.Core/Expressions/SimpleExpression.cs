@@ -8,6 +8,8 @@ namespace Python.Core.Expressions
         public bool IsConstant { get; set; }
         public Type ConstantType { get; set; }
         public bool IsVariable { get; set; }
+        public bool IsBytesString { get; set; }
+        public bool IsFormattedString { get; set; }
 
         public SimpleExpression()
         {

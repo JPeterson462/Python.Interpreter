@@ -417,14 +417,13 @@ namespace Python.Parser
             }
             Parser.Accept(")");
             Parser.Advance();
-            if (Parser.Peek().Value == "->")
+            if (Parser.Peek().Value == "->" || Parser.Peek().Type == TokenType.ReturnHint)
             {
                 Parser.Advance();
                 block.ReturnHint = Parser.ParseExpression();
             }
             Parser.Accept(":");
             Parser.Advance();
-            // TODO func_type_comment
             block.Statements = Parser.ParseBlock().Statements;
             return block;
         }

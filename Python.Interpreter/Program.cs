@@ -89,7 +89,8 @@ namespace Python.Interpreter
             //PythonParser p = ParsingUnitTest("{ x for x in S }");
             //PythonParser p = ParsingUnitTest("{ **src, more: True }");
 
-            PythonParser p = ParsingUnitTest("f\"abc{de}\"");
+            //PythonParser p = ParsingUnitTest("f\"abc{de}\"");
+            PythonParser p = ParsingUnitTest("def greeting(name: str) -> str:\n\treturn 'Hello ' + name");
 
             //PrintTokens(p.Tokens);
 
@@ -116,7 +117,8 @@ namespace Python.Interpreter
             //Expression e34 = p.CompoundSubParser.ParseTryStmt();
             //var e35 = p.AtomSubParser.ParseForIfClauses();
             //var e36 = p.AtomSubParser.ParseDict();
-            var e37 = p.AtomSubParser.ParseAtom();
+            //var e37 = p.AtomSubParser.ParseAtom();
+            var e38 = p.CompoundSubParser.ParseFunctionDef();
 
             DateTime en = DateTime.UtcNow;
             TimeSpan parseoffset = en.Subtract(parstst);

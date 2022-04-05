@@ -237,6 +237,14 @@ namespace Python.Parser
                                                 (isFloatingPointNumber ? typeof(double) : null)))
                 };
             }
+            else if (token.Type == TokenType.Str || token.Type == TokenType.Int)
+            {
+                Parser.Advance();
+                return new TypeExpression
+                {
+                    Value = token.Value
+                };
+            }
             else
             {
                 /*
@@ -259,7 +267,7 @@ namespace Python.Parser
                     dictcomp:
                         | '{' kvpair for_if_clauses '}' 
                  */
-                if(token.Type == TokenType.BeginParameters) // (
+                if (token.Type == TokenType.BeginParameters) // (
                 {
                     Parser.Advance();
                     Expression element = null;

@@ -43,7 +43,8 @@ namespace Python.Tokenizer
                     Count = 0
                 };
             }
-            if (GetCurrentCharacter() == '\t' || GetCurrentCharacter() == ' ')
+            if ((GetCurrentCharacter() == '\t' || GetCurrentCharacter() == ' ')
+                && (Source[Position - 1] == ':' || Source[Position - 1] == '\n'))
             {
                 //Advance();
                 int start = Position, end = start + 1;
@@ -301,6 +302,12 @@ namespace Python.Tokenizer
                     Type = TokenType.Variable,
                     Value = variableName
                 };
+            }
+            if (Source[Position] == ' ' || Source[Position] == '\t')
+            {
+                // if we got here and it's whitespace, just skip it
+                SkipWhitespace();
+                return null;
             }
             Console.WriteLine("unknown: " + Source.Substring(Position, 10));
             Console.WriteLine("uh-oh!");

@@ -1,1 +1,15 @@
-﻿speed up current try-catch parsing approach (error flags, return null)
+﻿PARSER:
+
+speed up current try-catch parsing approach (error flags, return null)
+
+matrix multiplication operator
+
+tokenizing whitespace-formatted parameters, or elements in a dict/list
+
+- - - - - - - - -
+
+INTERPRETER:
+
+1. build a parser
+2. ???
+3. profit

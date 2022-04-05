@@ -186,6 +186,17 @@ namespace Python.Parser
                 {
                     Parser.Advance();
                     Expression element = null;
+                    Parser.RewindTo(Parser.Position - 1);
+                    int position = Parser.Position;
+                    try
+                    {
+                        Expression generator = ParseGenexp();
+                        return generator;
+                    }
+                    catch (Exception ex)
+                    {
+                        Parser.RewindTo(position + 1);
+                    }
                     if (Parser.Peek().Value == Keyword.Yield.Value)
                     {
                         element = ParseYieldExpr();
@@ -193,11 +204,15 @@ namespace Python.Parser
                         Parser.Accept(TokenType.EndParameters);
                         Parser.Advance();
 
-                        return element;
+                        return new CollectionExpression
+                        {
+                            Elements = new List<Expression>(new Expression[] { element }),
+                            Type = CollectionType.GeneratedTuple
+                        };
                     }
                     else
                     {
-                        // FIXME handling group that's not a star_named_expression, is this correct?
+                        // TODO handling group that's not a star_named_expression, is this correct?
                         element = Parser.ParseStarNamedExpression();
                     }
                     List<Expression> elements = new List<Expression>();
@@ -205,7 +220,7 @@ namespace Python.Parser
                     while (Parser.Peek().Value == ",")
                     {
                         Parser.Advance();
-
+                        elements.Add(Parser.ParseStarNamedExpression());
                     }
                     element = new CollectionExpression
                     {
@@ -580,7 +595,29 @@ namespace Python.Parser
         //  | '(' (assignment_expression | expression !':=') for_if_clauses ')' 
         public Expression ParseGenexp()
         {
-            throw new NotImplementedException();
+            Parser.Accept("(");
+            Parser.Advance();
+            Expression target = null;
+            if (Parser.Peek(1).Value == ":=")
+            {
+                target = Parser.ParseAssignmentExpression();
+            }
+            else
+            {
+                target = Parser.ParseExpression();
+            }
+            List<Expression> clauses = ParseForIfClauses();
+            Parser.Accept(")");
+            Parser.Advance();
+            return new GeneratorExpression
+            {
+                Generator = new CollectionExpression
+                {
+                    Elements = clauses,
+                    Type = CollectionType.Generator
+                },
+                Target = target
+            };
         }
     }
 }

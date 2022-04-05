@@ -81,7 +81,9 @@ namespace Python.Interpreter
             //PythonParser p = ParsingUnitTest("for x in set:\n\ty += x");
             //PythonParser p = ParsingUnitTest("try:\n\tx += 1\nexcept Error as ex:\n\tx = -1\nfinally:\n\tx = 0");
             //PythonParser p = ParsingUnitTest("for var1 in exp1 if exp2 for var2 in exp3 if exp4");
-            PythonParser p = ParsingUnitTest("[x for x in S]");
+            //PythonParser p = ParsingUnitTest("[x for x in S]");
+            //PythonParser p = ParsingUnitTest("(True, 1)");
+            PythonParser p = ParsingUnitTest("(x for var1 in exp1)");
 
             //PrintTokens(p.Tokens);
 

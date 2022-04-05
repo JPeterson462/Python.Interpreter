@@ -119,20 +119,27 @@ namespace Python.Parser
                 }
                 else if (Parser.Peek().Value == "(" || Parser.Peek().Type == TokenType.BeginParameters)
                 {
-                    Parser.Advance();
-                    atom = new EvaluatedExpression
+                    int position = Parser.Position;
+                    try
                     {
-                        LeftHandValue = atom,
-                        IsFunctionCall = true,
-                        RightHandValue = Parser.ArgumentsSubParser.ParseArguments()
-                    };
-                    Parser.Accept(TokenType.EndParameters);
-                    Parser.Advance();
+                        atom = ParseGenexp();
+                    }
+                    catch (Exception ex)
+                    {
+                        Parser.RewindTo(position);
+                        Parser.Advance();
+                        atom = new EvaluatedExpression
+                        {
+                            LeftHandValue = atom,
+                            IsFunctionCall = true,
+                            RightHandValue = Parser.ArgumentsSubParser.ParseArguments()
+                        };
+                        Parser.Accept(TokenType.EndParameters);
+                        Parser.Advance();
+                    }
                 }
                 next = Parser.Peek();
             }
-            /*// FIXME genexp
-            */
             return atom;
         }
         public Expression ParseAtom()
@@ -270,21 +277,53 @@ namespace Python.Parser
                 }
                 else if (token.Type == TokenType.DictionaryStart) // {
                 {
-                    Parser.Advance();
+                    // (dict | set | dictcomp | setcomp)
+                    //Parser.Advance();
 
-                    // FIXME implement
+                    int position = Parser.Position;
+                    try
+                    {
+                        Expression expr = ParseDict();
+                        return expr;
+                    }
+                    catch (Exception ex)
+                    {
+                        Parser.RewindTo(position);
+                    }
+                    try
+                    {
+                        Expression expr = ParseSet();
+                        return expr;
+                    }
+                    catch (Exception ex)
+                    {
+                        Parser.RewindTo(position);
+                    }
+                    try
+                    {
+                        Expression expr = ParseDictcomp();
+                        return expr;
+                    }
+                    catch (Exception ex)
+                    {
+                        Parser.RewindTo(position);
+                    }
+                    // last case, if it fails it fails
+                    {
+                        Expression expr = ParseSetcomp();
+                        return expr;
+                    }
 
-                    Parser.Accept(TokenType.DictionaryEnd);
-                    Parser.Advance();
+                    //Parser.Accept(TokenType.DictionaryEnd);
+                    //Parser.Advance();
                 }
                 else
                 {
                     Parser.ThrowSyntaxError(Parser.Position);
                 }
             }
-
-
-            throw new NotImplementedException();
+            Parser.ThrowSyntaxError(Parser.Position);
+            return null;// shouldn't get here
         }
         //star_targets:
         //| star_target !',' 

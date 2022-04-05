@@ -59,7 +59,11 @@ namespace Python.Parser
                 //    | for_stmt
                 return ParseForStmt();
             }
-            //    | try_stmt TODO
+            if (Parser.Peek().Value == Keyword.Try.Value)
+            {
+                //    | try_stmt
+                return ParseTryStmt();
+            }
             if (Parser.Peek().Value == Keyword.While.Value)
             {
                 //    | while_stmt
@@ -70,7 +74,6 @@ namespace Python.Parser
                 //    | match_stmt
                 return ParseMatchStmt();
             }
-            // FIXME
             return null;
         }
 
@@ -737,6 +740,99 @@ namespace Python.Parser
             Parser.Advance();
             block.Statements = Parser.ParseBlock().Statements;
             return block;
+        }
+        //try_stmt:
+        //    | 'try' ':' block finally_block 
+        //    | 'try' ':' block except_block+ [else_block] [finally_block]
+        public TryCatchCodeBlock ParseTryStmt()
+        {
+            Parser.Accept(Keyword.Try.Value);
+            Parser.Advance();
+            Parser.Accept(":");
+            Parser.Advance();
+            CodeBlock block = Parser.ParseBlock();
+            if (Parser.Peek().Value == Keyword.Except.Value)
+            {
+                List<CatchCodeBlock> catchBlocks = new List<CatchCodeBlock>();
+                while (Parser.Peek().Value == Keyword.Except.Value)
+                {
+                    catchBlocks.Add(ParseExceptBlock());
+                }
+                TryCatchCodeBlock tryBlock = new TryCatchCodeBlock
+                {
+                    Statements = block.Statements,
+                    CatchBlocks = catchBlocks
+                };
+                if (Parser.Peek().Value == Keyword.Else.Value)
+                {
+                    Parser.Advance();
+                    Parser.Accept(":");
+                    Parser.Advance();
+                    tryBlock.ElseBlock = Parser.ParseBlock();
+                }
+                if (Parser.Peek().Value == Keyword.Finally.Value)
+                {
+                    Parser.Advance();
+                    Parser.Accept(":");
+                    Parser.Advance();
+                    tryBlock.FinallyBlock = Parser.ParseBlock();
+                }
+                return tryBlock;
+            }
+            else
+            {
+                CodeBlock finallyBlock = ParseFinallyBlock();
+                return new TryCatchCodeBlock
+                {
+                    Statements = block.Statements,
+                    FinallyBlock = finallyBlock
+                };
+            }
+        }
+        //except_block:
+        //    | 'except' expression['as' NAME] ':' block 
+        //    | 'except' ':' block
+        public CatchCodeBlock ParseExceptBlock()
+        {
+            Parser.Accept(Keyword.Except.Value);
+            Parser.Advance();
+            if (Parser.Peek().Value == ":")
+            {
+                CodeBlock block = Parser.ParseBlock();
+                Parser.Advance();
+                return new CatchCodeBlock
+                {
+                    Statements = block.Statements
+                };
+            }
+            else
+            {
+                Expression capture = Parser.ParseExpression();
+                string alias = null;
+                if (Parser.Peek().Value == Keyword.As.Value)
+                {
+                    Parser.Advance();
+                    alias = Parser.Peek().Value;
+                    Parser.Advance();
+                }
+                Parser.Accept(":");
+                Parser.Advance();
+                CodeBlock block = Parser.ParseBlock();
+                return new CatchCodeBlock
+                {
+                    Capture = capture,
+                    Alias = alias,
+                    Statements = block.Statements
+                };
+            }
+        }
+        //finally_block:
+        //    | 'finally' ':' block
+        public CodeBlock ParseFinallyBlock()
+        {
+            Parser.Accept(Keyword.Finally.Value);
+            Parser.Advance();
+            return Parser.ParseBlock();
         }
     }
 }

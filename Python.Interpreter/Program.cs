@@ -78,7 +78,8 @@ namespace Python.Interpreter
             //PythonParser p = ParsingUnitTest("kendo.ui.DataSource(1, is_set=True,)");
             //PythonParser p = ParsingUnitTest("def func(arg1, arg2, arg3, *, kwarg1, kwarg2):\n\tpass");
             //PythonParser p = ParsingUnitTest("@Action\nclass MyRunner:\n\tdef runme(self, arg):\n\t\tpass");
-            PythonParser p = ParsingUnitTest("for x in set:\n\ty += x");
+            //PythonParser p = ParsingUnitTest("for x in set:\n\ty += x");
+            PythonParser p = ParsingUnitTest("try:\n\tx += 1\nexcept Error as ex:\n\tx = -1\nfinally:\n\tx = 0");
 
             //PrintTokens(p.Tokens);
 
@@ -101,7 +102,8 @@ namespace Python.Interpreter
             //Expression e30 = p.CompoundSubParser.ParseMatchStmt();
             //Expression e31 = p.CompoundSubParser.ParseFunctionDef();
             //Expression e32 = p.CompoundSubParser.ParseClassDef();
-            Expression e33 = p.CompoundSubParser.ParseForStmt();
+            //Expression e33 = p.CompoundSubParser.ParseForStmt();
+            Expression e34 = p.CompoundSubParser.ParseTryStmt();
 
             DateTime en = DateTime.UtcNow;
             TimeSpan parseoffset = en.Subtract(parstst);

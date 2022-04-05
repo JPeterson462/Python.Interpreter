@@ -90,9 +90,13 @@ namespace Python.Interpreter
             //PythonParser p = ParsingUnitTest("{ **src, more: True }");
 
             //PythonParser p = ParsingUnitTest("f\"abc{de}\"");
-            PythonParser p = ParsingUnitTest("def greeting(name: str) -> str:\n\treturn 'Hello ' + name");
+            //PythonParser p = ParsingUnitTest("def greeting(name: str) -> str:\n\treturn 'Hello ' + name");
+            PythonParser p = ParsingUnitTest("def broadcast_message(message: str, servers: Sequence[tuple[tuple[str, int], dict[str, str]]]) -> None:\n\tpass");
 
-            //PrintTokens(p.Tokens);
+
+            //PythonParser p = ParsingUnitTest("def broadcast_message(\n   message: str,\n   servers: Sequence[tuple[tuple[str, int], dict[str, str]]])->None:\n\tpass");
+
+            PrintTokens(p.Tokens);
 
             DateTime parstst = DateTime.UtcNow;
 
@@ -155,15 +159,16 @@ namespace Python.Interpreter
         }
         private static void PrintToken(Token t)
         {
-            if (t == null)
+            /*if (t == null)
             {
                 Console.WriteLine("type: NULL");
                 Console.WriteLine("value: NONE");
             }
-            else
+            else*/
             {
-                Console.WriteLine("type: " + Enum.GetName(typeof(TokenType), t.Type));
-                Console.WriteLine("value: " + t.Value);
+                //Console.WriteLine("type: " + Enum.GetName(typeof(TokenType), t.Type));
+                //Console.WriteLine("value: " + t.Value);
+                Console.WriteLine("[" + Enum.GetName(typeof(TokenType), t.Type) + "'" + t.Value + "']");
             }
         }
         public static PythonParser ParsingUnitTest(string source)

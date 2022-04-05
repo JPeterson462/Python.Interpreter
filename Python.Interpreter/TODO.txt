@@ -1,4 +1,1 @@
-﻿# PEG grammar for Python
-
-type comments on functions
-speed up current try-catch parsing approach (error flags, return null)
+﻿speed up current try-catch parsing approach (error flags, return null)

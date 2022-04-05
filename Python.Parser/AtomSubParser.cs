@@ -228,7 +228,15 @@ namespace Python.Parser
                     Expression element = Parser.ParseStarNamedExpression();
                     if (Parser.Peek().Value == Keyword.Async.Value || Parser.Peek().Value == Keyword.For.Value)
                     {
-                        // FIXME implement
+                        List<Expression> clauses = ParseForIfClauses();
+                        return new GeneratorExpression
+                        {
+                            Target = element,
+                            Generator = new CollectionExpression
+                            {
+                                Elements = clauses
+                            }
+                        };
                     }
                     else
                     {

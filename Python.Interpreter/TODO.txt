@@ -47,11 +47,6 @@ atom:
     | (dict | set | dictcomp | setcomp)
     | '...' 
 
-strings: STRING+ 
-list:
-    | '[' [star_named_expressions] ']' 
-listcomp:
-    | '[' named_expression for_if_clauses ']' 
 tuple:
     | '(' [star_named_expression ',' [star_named_expressions]  ] ')' 
 group:

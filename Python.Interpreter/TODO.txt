@@ -35,16 +35,4 @@ primary:
     | primary '[' slices ']' 
     | atom
 
-atom:
-    | NAME
-    | 'True' 
-    | 'False' 
-    | 'None' 
-    | strings
-    | NUMBER
-    | (tuple | group | genexp)
-    | (list | listcomp)
-    | (dict | set | dictcomp | setcomp)
-    | '...' 
-
 bytes and formatted strings

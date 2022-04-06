@@ -93,6 +93,8 @@ namespace Python.Interpreter
             //PythonParser p = ParsingUnitTest("def greeting(name: str) -> str:\n\treturn 'Hello ' + name");
             PythonParser p = ParsingUnitTest("def broadcast_message(message: str, servers: Sequence[tuple[tuple[str, int], dict[str, str]]]) -> None:\n\tfor srv in servers:\n\t\tbroadcast(srv, message)\n\tprint('sent')");
 
+            //PythonParser p = ParsingUnitTest("print(\"sent\")");
+
             //PythonParser p = ParsingUnitTest("def broadcast_message(\n   message: str,\n   servers: Sequence[tuple[tuple[str, int], dict[str, str]]])->None:\n\tpass");
 
             //PrintTokens(p.Tokens);
@@ -122,6 +124,7 @@ namespace Python.Interpreter
             //var e36 = p.AtomSubParser.ParseDict();
             //var e37 = p.AtomSubParser.ParseAtom();
             var e38 = p.CompoundSubParser.ParseFunctionDef();
+            //var e39 = p.AtomSubParser.ParsePrimary();
 
             DateTime en = DateTime.UtcNow;
             TimeSpan parseoffset = en.Subtract(parstst);

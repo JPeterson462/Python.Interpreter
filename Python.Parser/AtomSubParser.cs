@@ -17,6 +17,14 @@ namespace Python.Parser
         public List<Expression> ParseForIfClauses()
         {
             List<Expression> clauses = new List<Expression>();
+            if (Parser.Peek().Value != Keyword.Async.Value)
+            {
+                Parser.Accept(Keyword.For.Value);
+            }
+            if (Parser.Peek().Value == Keyword.Async.Value && Parser.Peek(1).Value != Keyword.For.Value)
+            {
+                Parser.ThrowSyntaxError(Parser.Position);
+            }
             while (Parser.Peek().Value == Keyword.Async.Value || Parser.Peek().Value == Keyword.For.Value)
             {
                 clauses.Add(ParseForIfClause());

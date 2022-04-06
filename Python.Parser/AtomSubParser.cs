@@ -123,17 +123,19 @@ namespace Python.Parser
                 else if (Parser.Peek().Value == "(" || Parser.Peek().Type == TokenType.BeginParameters)
                 {
                     int position = Parser.Position;
-                    try
+                    var oldAtom = atom;
+                    //try
                     {
                         atom = ParseGenexp();
                     }
-                    catch (Exception ex)
+                    if (Parser.HasErrors())
+                    //catch (Exception ex)
                     {
                         Parser.RewindTo(position);
                         Parser.Advance();
                         atom = new EvaluatedExpression
                         {
-                            LeftHandValue = atom,
+                            LeftHandValue = oldAtom,
                             IsFunctionCall = true,
                             RightHandValue = Parser.ArgumentsSubParser.ParseArguments()
                         };
@@ -188,17 +190,19 @@ namespace Python.Parser
                 else if (Parser.Peek().Value == "(" || Parser.Peek().Type == TokenType.BeginParameters)
                 {
                     int position = Parser.Position;
-                    try
+                    var oldAtom = atom;
+                    //try
                     {
                         atom = ParseGenexp();
                     }
-                    catch (Exception ex)
+                    if (Parser.HasErrors())
+                    //catch (Exception ex)
                     {
                         Parser.RewindTo(position);
                         Parser.Advance();
                         atom = new EvaluatedExpression
                         {
-                            LeftHandValue = atom,
+                            LeftHandValue = oldAtom,
                             IsFunctionCall = true,
                             RightHandValue = Parser.ArgumentsSubParser.ParseArguments()
                         };
@@ -281,12 +285,15 @@ namespace Python.Parser
                     Expression element = null;
                     Parser.RewindTo(Parser.Position - 1);
                     int position = Parser.Position;
-                    try
+                    //try
                     {
                         Expression generator = ParseGenexp();
-                        return generator;
+                        if (!Parser.HasErrors())
+                        {
+                            return generator;
+                        }
                     }
-                    catch (Exception ex)
+                    //catch (Exception ex)
                     {
                         Parser.RewindTo(position + 1);
                     }
@@ -367,30 +374,39 @@ namespace Python.Parser
                     //Parser.Advance();
 
                     int position = Parser.Position;
-                    try
+                    //try
                     {
                         Expression expr = ParseDict();
-                        return expr;
+                        if (!Parser.HasErrors())
+                        {
+                            return expr;
+                        }
                     }
-                    catch (Exception ex)
+                    //catch (Exception ex)
                     {
                         Parser.RewindTo(position);
                     }
-                    try
+                    //try
                     {
                         Expression expr = ParseSet();
-                        return expr;
+                        if (!Parser.HasErrors())
+                        {
+                            return expr;
+                        }
                     }
-                    catch (Exception ex)
+                    //catch (Exception ex)
                     {
                         Parser.RewindTo(position);
                     }
-                    try
+                    //try
                     {
                         Expression expr = ParseDictcomp();
-                        return expr;
+                        if (!Parser.HasErrors())
+                        {
+                            return expr;
+                        }
                     }
-                    catch (Exception ex)
+                    //catch (Exception ex)
                     {
                         Parser.RewindTo(position);
                     }
@@ -483,7 +499,7 @@ namespace Python.Parser
         public Expression ParseTargetWithStarAtom()
         {
             int position = Parser.Position;
-            try
+            //try
             {
                 Expression tprimary = ParseTPrimary();
                 if (Parser.Peek().Value == ".")
@@ -491,16 +507,19 @@ namespace Python.Parser
                     Parser.Advance();
                     string name = Parser.OperatorSubParser.ParseName();
                     DontAcceptTLookahead();
-                    return new EvaluatedExpression
+                    if (!Parser.HasErrors())
                     {
-                        LeftHandValue = tprimary,
-                        Operator = Operator.ObjectReference,
-                        RightHandValue = new SimpleExpression
+                        return new EvaluatedExpression
                         {
-                            Value = name,
-                            IsVariable = true
-                        }
-                    };
+                            LeftHandValue = tprimary,
+                            Operator = Operator.ObjectReference,
+                            RightHandValue = new SimpleExpression
+                            {
+                                Value = name,
+                                IsVariable = true
+                            }
+                        };
+                    }
                 }
                 else if (Parser.Peek().Value == "[")
                 {
@@ -509,19 +528,23 @@ namespace Python.Parser
                     Parser.Accept("]");
                     Parser.Advance();
                     DontAcceptTLookahead();
-                    return new EvaluatedExpression
+                    if (!Parser.HasErrors())
                     {
-                        LeftHandValue = tprimary,
-                        RightHandValue = slices,
-                        IsArrayAccessor = true
-                    };
+                        return new EvaluatedExpression
+                        {
+                            LeftHandValue = tprimary,
+                            RightHandValue = slices,
+                            IsArrayAccessor = true
+                        };
+                    }
                 }
                 else
                 {
                     Parser.ThrowSyntaxError(Parser.Position);
                 }
             }
-            catch (Exception)
+            if (Parser.HasErrors())
+            //catch (Exception)
             {
                 Parser.RewindTo(position);
                 return ParseStarAtom();

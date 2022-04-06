@@ -459,7 +459,7 @@ namespace Python.Parser
         public List<ParameterExpression> ParseParameters()
         {
             int previous = Parser.Position;
-            try
+            //try
             {
                 List<ParameterExpression> parameters = ParseSlashNoDefault();
                 while (Parser.Peek(1).Value != "=" && Parser.Peek().Value != ")" && Parser.Peek().Value != "*")
@@ -474,13 +474,16 @@ namespace Python.Parser
                 {
                     parameters.AddRange(ParseStarEtc());
                 }
-                return parameters;
+                if (!Parser.HasErrors())
+                {
+                    return parameters;
+                }
             }
-            catch (Exception)
+            //catch (Exception)
             {
                 Parser.RewindTo(previous);
             }
-            try
+            //try
             {
                 List<ParameterExpression> parameters = ParseSlashWithDefault();
                 while (Parser.Peek(1).Value == "=" && Parser.Peek().Value != ")" && Parser.Peek().Value != "*")
@@ -491,9 +494,12 @@ namespace Python.Parser
                 {
                     parameters.AddRange(ParseStarEtc());
                 }
-                return parameters;
+                if (!Parser.HasErrors())
+                {
+                    return parameters;
+                }
             }
-            catch (Exception)
+            //catch (Exception)
             {
                 Parser.RewindTo(previous);
             }

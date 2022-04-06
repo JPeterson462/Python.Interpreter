@@ -204,7 +204,7 @@ namespace Python.Parser
                 };
             }
             int previous = Parser.Position;
-            try
+            //try
             {
                 Expression ex = ParseAssignment();
                 if (ex == null)
@@ -212,9 +212,12 @@ namespace Python.Parser
                     Parser.RewindTo(previous);
                     ex = Parser.ParseStarExpressions();
                 }
-                return ex;
+                if (!Parser.HasErrors())
+                {
+                    return ex;
+                }
             }
-            catch (Exception ex)
+            //catch (Exception ex)
             {
                 Parser.RewindTo(previous);
                 return Parser.ParseStarExpressions();
@@ -248,7 +251,7 @@ namespace Python.Parser
         {
             // try to parse as a t_primary first
             int position = Parser.Position;
-            try
+            //try
             {
                 Expression tprimary = Parser.AtomSubParser.ParseTPrimary();
                 if (Parser.Peek().Value == ".")
@@ -257,16 +260,19 @@ namespace Python.Parser
                     string name = Parser.Peek().Value;
                     Parser.Advance();
                     Parser.AtomSubParser.DontAcceptTLookahead();
-                    return new EvaluatedExpression
+                    if (!Parser.HasErrors())
                     {
-                        LeftHandValue = tprimary,
-                        Operator = Operator.ObjectReference,
-                        RightHandValue = new SimpleExpression
+                        return new EvaluatedExpression
                         {
-                            Value = name,
-                            IsVariable = true
-                        }
-                    };
+                            LeftHandValue = tprimary,
+                            Operator = Operator.ObjectReference,
+                            RightHandValue = new SimpleExpression
+                            {
+                                Value = name,
+                                IsVariable = true
+                            }
+                        };
+                    }
                 }
                 else if (Parser.Peek().Value == "[")
                 {
@@ -275,19 +281,25 @@ namespace Python.Parser
                     Parser.Accept("]");
                     Parser.Advance();
                     Parser.AtomSubParser.DontAcceptTLookahead();
-                    return new EvaluatedExpression
+                    if (!Parser.HasErrors())
                     {
-                        LeftHandValue = tprimary,
-                        IsArrayAccessor = true,
-                        RightHandValue = slices
-                    };
+                        return new EvaluatedExpression
+                        {
+                            LeftHandValue = tprimary,
+                            IsArrayAccessor = true,
+                            RightHandValue = slices
+                        };
+                    }
                 }
                 else
                 {
-                    return tprimary;
+                    if (!Parser.HasErrors())
+                    {
+                        return tprimary;
+                    }
                 }
             }
-            catch (Exception)
+            //catch (Exception)
             {
                 Parser.RewindTo(position);
                 // it's not a t_primary; hopefully this try-catch isn't too expensive
@@ -492,7 +504,7 @@ namespace Python.Parser
                 && Parser.Peek(1).Value == ":")
             {
                 int position = Parser.Position;
-                try
+                //try
                 {
                     string tgt = Parser.Peek().Value;
                     Parser.Advance();
@@ -502,30 +514,36 @@ namespace Python.Parser
                     {
                         Parser.Advance();
                         Expression rhs = ParseAnnotatedRhs();
-                        return new EvaluatedExpression
+                        if (!Parser.HasErrors())
                         {
-                            LeftHandValue = new SimpleExpression
+                            return new EvaluatedExpression
                             {
-                                Value = tgt,
-                                IsVariable = true
-                            },
-                            Annotation = ex,
-                            Operator = Operator.Set,
-                            RightHandValue = rhs
-                        };
+                                LeftHandValue = new SimpleExpression
+                                {
+                                    Value = tgt,
+                                    IsVariable = true
+                                },
+                                Annotation = ex,
+                                Operator = Operator.Set,
+                                RightHandValue = rhs
+                            };
+                        }
                     }
                     else
                     {
-                        // the RHS is optional in this assignment? leave it as a simple expression for now
-                        return new SimpleExpression
+                        if (!Parser.HasErrors())
                         {
-                            Value = tgt,
-                            IsVariable = true,
-                            Annotation = ex
-                        };
+                            // the RHS is optional in this assignment? leave it as a simple expression for now
+                            return new SimpleExpression
+                            {
+                                Value = tgt,
+                                IsVariable = true,
+                                Annotation = ex
+                            };
+                        }
                     }
                 }
-                catch (Exception ex)
+                //catch (Exception ex)
                 {
                     Parser.RewindTo(position);
                     // rewind and try the next one
@@ -534,21 +552,24 @@ namespace Python.Parser
             if (Parser.Peek().Value == "(")
             {
                 int position = Parser.Position;
-                try
+                //try
                 {
                     // TODO the grammar makes this look like it should have a nested case?
                     Expression singleTarget = Parser.AtomSubParser.ParseSingleTarget();
                     Parser.Accept(")");
-                    return singleTarget;
+                    if (!Parser.HasErrors())
+                    {
+                        return singleTarget;
+                    }
                 }
-                catch (Exception ex)
+                //catch (Exception ex)
                 {
                     Parser.RewindTo(position);
                     // rewind and try the next one
                 }
             }
             int previous = Parser.Position;
-            try
+            //try
             {
                 Expression lhs = Parser.AtomSubParser.ParseSingleSubscriptAttributeTarget();
                 Parser.Accept(":");
@@ -557,28 +578,34 @@ namespace Python.Parser
                 {
                     Parser.Advance();
                     Expression rhs = ParseAnnotatedRhs();
-                    return new EvaluatedExpression
+                    if (!Parser.HasErrors())
                     {
-                        LeftHandValue = lhs,
-                        Annotation = ex,
-                        Operator = Operator.Set,
-                        RightHandValue = rhs
-                    };
+                        return new EvaluatedExpression
+                        {
+                            LeftHandValue = lhs,
+                            Annotation = ex,
+                            Operator = Operator.Set,
+                            RightHandValue = rhs
+                        };
+                    }
                 }
                 else
                 {
-                    // the RHS is optional in this assignment? leave it as a simple expression for now
-                    return lhs;
+                    if (!Parser.HasErrors())
+                    {
+                        // the RHS is optional in this assignment? leave it as a simple expression for now
+                        return lhs;
+                    }
                 }
             }
-            catch (Exception ex)
+            //catch (Exception ex)
             {
                 Parser.RewindTo(previous);
                 // rewind and try the next one
             }
             // star_targets
             previous = Parser.Position;
-            try
+            //try
             {
                 List<Expression> targets = new List<Expression>();
                 Expression lhs = Parser.AtomSubParser.ParseStarTargets();
@@ -611,9 +638,12 @@ namespace Python.Parser
                     };
                     idx--;
                 }
-                return result;
+                if (!Parser.HasErrors())
+                {
+                    return result;
+                }
             }
-            catch (Exception ex)
+            //catch (Exception ex)
             {
                 Parser.RewindTo(previous);
                 // rewind and try the next one

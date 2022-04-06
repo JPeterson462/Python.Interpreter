@@ -18,10 +18,10 @@ namespace Python.Parser
         public PatternExpression ParsePatterns()
         {
             int previous = Parser.Position;
-            try
+            //try
             {
                 Pattern p = ParseOpenSequencePattern();
-                if (p != null)
+                if (p != null && !Parser.HasErrors())
                 {
                     return new PatternExpression
                     {
@@ -30,7 +30,7 @@ namespace Python.Parser
                 }
                 Parser.RewindTo(previous);
             }
-            catch (Exception)
+            //catch (Exception)
             {
                 Parser.RewindTo(previous);
             }
@@ -101,20 +101,20 @@ namespace Python.Parser
                 return ParseLiteralPattern();
             }
             int previous = Parser.Position;
-            try
+            //try
             {
                 if (Parser.Peek().Type == TokenType.Variable)
                 {
                     // value_pattern
                     Pattern p = ParseValuePattern();
-                    if (p != null)
+                    if (p != null && !Parser.HasErrors())
                     {
                         return p;
                     }
                     Parser.RewindTo(previous);
                 }
             }
-            catch (Exception)
+            //catch (Exception)
             {
                 Parser.RewindTo(previous);
             }

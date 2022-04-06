@@ -381,60 +381,15 @@ namespace Python.Parser
                 {
                     LeftHandValue = null,
                     KeywordOperator = Keyword.Await,
-                    RightHandValue = ParsingUtils.FlipExpressionTree(ParsePrimary(), c => c == Operator.ObjectReference.Value
+                    RightHandValue = ParsingUtils.FlipExpressionTree(Parser.AtomSubParser.ParsePrimary(), c => c == Operator.ObjectReference.Value
                                                                                             || c == "(" || c == "[")
                 };
             }
             else
             {
-                return ParsingUtils.FlipExpressionTree(ParsePrimary(), c => c == Operator.ObjectReference.Value
+                return ParsingUtils.FlipExpressionTree(Parser.AtomSubParser.ParsePrimary(), c => c == Operator.ObjectReference.Value
                                                                               || c == "(" || c == "[");
             }
-        }
-        // primary:
-        // | primary '.' NAME 
-        // | primary genexp 
-        // | primary '(' [arguments] ')' 
-        // | primary '[' slices ']' 
-        // | atom
-        public Expression ParsePrimary()
-        {
-            Expression atom = Parser.AtomSubParser.ParseAtom();
-            string next = Parser.Peek().Value;
-            if (next == "." || Parser.Peek().Type == TokenType.ObjectReference)
-            {
-                Parser.Advance();
-                Expression val = ParsePrimary();
-                return new EvaluatedExpression
-                {
-                    LeftHandValue = atom,
-                    Operator = Operator.ObjectReference,
-                    RightHandValue = val
-                };
-            }
-            else if (next == "(" || Parser.Peek().Type == TokenType.BeginParameters)
-            {
-                
-            }
-            else if (next == "[" || Parser.Peek().Type == TokenType.BeginList)
-            {
-                Parser.Advance();
-                Expression slices = Parser.AtomSubParser.ParseSlices();
-                Parser.Accept(TokenType.EndList);
-                Parser.Advance();
-                return new EvaluatedExpression
-                {
-                    LeftHandValue = atom,
-                    IsArrayAccessor = true,
-                    RightHandValue = slices
-                };
-            }
-            else
-            {
-                // FIXME parse genexp or return atom
-            }
-            //FIXME
-            return atom;
         }
     }
 }

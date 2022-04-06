@@ -91,11 +91,11 @@ namespace Python.Interpreter
 
             //PythonParser p = ParsingUnitTest("f\"abc{de}\"");
             //PythonParser p = ParsingUnitTest("def greeting(name: str) -> str:\n\treturn 'Hello ' + name");
-            //PythonParser p = ParsingUnitTest("def broadcast_message(message: str, servers: Sequence[tuple[tuple[str, int], dict[str, str]]]) -> None:\n\tpass");
+            PythonParser p = ParsingUnitTest("def broadcast_message(message: str, servers: Sequence[tuple[tuple[str, int], dict[str, str]]]) -> None:\n\tfor srv in servers:\n\t\tbroadcast(srv, message)\n\tprint('sent')");
 
-            PythonParser p = ParsingUnitTest("def broadcast_message(\n   message: str,\n   servers: Sequence[tuple[tuple[str, int], dict[str, str]]])->None:\n\tpass");
+            //PythonParser p = ParsingUnitTest("def broadcast_message(\n   message: str,\n   servers: Sequence[tuple[tuple[str, int], dict[str, str]]])->None:\n\tpass");
 
-            PrintTokens(p.Tokens);
+            //PrintTokens(p.Tokens);
 
             DateTime parstst = DateTime.UtcNow;
 

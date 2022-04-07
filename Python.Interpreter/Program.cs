@@ -91,11 +91,11 @@ namespace Python.Interpreter
 
             //PythonParser p = ParsingUnitTest("f\"abc{de}\"");
             //PythonParser p = ParsingUnitTest("def greeting(name: str) -> str:\n\treturn 'Hello ' + name");
-            PythonParser p = ParsingUnitTest("def broadcast_message(message: str, servers: Sequence[tuple[tuple[str, int], dict[str, str]]]) -> None:\n\tfor srv in servers:\n\t\tbroadcast(srv, message)\n\tprint('sent')");
+            //PythonParser p = ParsingUnitTest("def broadcast_message(message: str, servers) -> None:\n\tfor srv in servers:\n\t\tbroadcast(srv, message)\n\tprint('sent')");
 
             //PythonParser p = ParsingUnitTest("print(\"sent\")");
 
-            //PythonParser p = ParsingUnitTest("def broadcast_message(\n   message: str,\n   servers: Sequence[tuple[tuple[str, int], dict[str, str]]])->None:\n\tpass");
+            PythonParser p = ParsingUnitTest("def broadcast_message(\n   message: str,\n   servers: Sequence[tuple[tuple[str, int], dict[str, str]]])->None:\n\tpass");
 
             //PrintTokens(p.Tokens);
 
@@ -130,9 +130,9 @@ namespace Python.Interpreter
             TimeSpan parseoffset = en.Subtract(parstst);
             Console.WriteLine("parser time: " + parseoffset);
 
-            TimeSpan offset = en.Subtract(st);
+            //TimeSpan offset = en.Subtract(st);
             //string source = File.ReadAllText("/Users/jpeterson/git/PythonLexer/Python.Interpreter/Python.Interpreter/test8.py");
-            Console.WriteLine("total time: " + offset);
+            //Console.WriteLine("total time: " + offset);
 
             /*PythonTokenizer tokenizer = new PythonTokenizer(source);
             List<Token> tokens = tokenizer.Consume();

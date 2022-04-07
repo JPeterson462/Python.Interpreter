@@ -2,8 +2,6 @@
 
 matrix multiplication operator
 
-tokenizing whitespace-formatted parameters, or elements in a dict/list
-
 - - - - - - - - -
 
 INTERPRETER:

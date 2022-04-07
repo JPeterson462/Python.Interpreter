@@ -117,7 +117,7 @@ namespace Python.Tokenizer
             if (GetCurrentCharacter() == '(')
             {
                 Advance();
-                SkipWhitespace();
+                SkipWhitespace(true, false);
                 return new Token
                 {
                     Type = TokenType.BeginParameters,
@@ -137,7 +137,7 @@ namespace Python.Tokenizer
             if (GetCurrentCharacter() == '[')
             {
                 Advance();
-                SkipWhitespace();
+                SkipWhitespace(true, false);
                 return new Token
                 {
                     Type = TokenType.BeginList,
@@ -157,7 +157,7 @@ namespace Python.Tokenizer
             if (GetCurrentCharacter() == '{')
             {
                 Advance();
-                SkipWhitespace();
+                SkipWhitespace(true, false);
                 return new Token
                 {
                     Type = TokenType.DictionaryStart,
@@ -177,7 +177,7 @@ namespace Python.Tokenizer
             if (GetCurrentCharacter() == ',')
             {
                 Advance();
-                SkipWhitespace();
+                SkipWhitespace(true, false);
                 return new Token
                 {
                     Type = TokenType.ElementSeparator,

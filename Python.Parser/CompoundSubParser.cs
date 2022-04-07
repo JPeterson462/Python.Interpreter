@@ -462,11 +462,11 @@ namespace Python.Parser
             //try
             {
                 List<ParameterExpression> parameters = ParseSlashNoDefault();
-                while (Parser.Peek(1).Value != "=" && Parser.Peek().Value != ")" && Parser.Peek().Value != "*")
+                while (Parser.Position + 1 < Parser.Tokens.Count && Parser.Peek(1).Value != "=" && Parser.Peek().Value != ")" && Parser.Peek().Value != "*")
                 {
                     parameters.Add(ParseParamNoDefault());
                 }
-                while (Parser.Peek(1).Value == "=" && Parser.Peek().Value != ")" && Parser.Peek().Value != "*")
+                while (Parser.Position + 1 < Parser.Tokens.Count && Parser.Peek(1).Value == "=" && Parser.Peek().Value != ")" && Parser.Peek().Value != "*")
                 {
                     parameters.Add(ParseParamWithDefault());
                 }
@@ -486,7 +486,7 @@ namespace Python.Parser
             //try
             {
                 List<ParameterExpression> parameters = ParseSlashWithDefault();
-                while (Parser.Peek(1).Value == "=" && Parser.Peek().Value != ")" && Parser.Peek().Value != "*")
+                while (Parser.Position + 1 < Parser.Tokens.Count && Parser.Peek(1).Value == "=" && Parser.Peek().Value != ")" && Parser.Peek().Value != "*")
                 {
                     parameters.Add(ParseParamWithDefault());
                 }

@@ -89,11 +89,11 @@ namespace Python.Tokenizer
             // don't process tabs as whitespace, process them as TokenType.Tab
             return c == ' ' || /*(tabsAsWhitespace && c == '\t') ||*/ c == '\r' || c == '\n';
         }
-        public void SkipWhitespace(bool tabsAsWhitespace = true)
+        public void SkipWhitespace(bool tabsAsWhitespace = true, bool breakOnNewlines = true)
         {
             while (Position < Source.Length && IsWhitespace(Source[Position], tabsAsWhitespace))
             {
-                if (Source[Position] == '\n')
+                if (Source[Position] == '\n' && breakOnNewlines)
                 {
                     break; // stop after the newline
                 }

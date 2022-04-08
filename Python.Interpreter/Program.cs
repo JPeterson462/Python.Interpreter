@@ -97,7 +97,7 @@ namespace Python.Interpreter
 
             //PythonParser p = ParsingUnitTest("def broadcast_message(\n   message: str,\n   servers: Sequence[tuple[tuple[str, int], dict[str, str]]])->None:\n\tpass");
 
-            PythonParser p = ParsingUnitTest("def runme(:\n\ta = \"test \\\"val\\\"\"");
+            PythonParser p = ParsingUnitTest("def runme():\n\ta = P @ (V @ M)");
 
             //PrintTokens(p.Tokens);
 

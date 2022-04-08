@@ -1,7 +1,5 @@
 ﻿PARSER:
 
-matrix multiplication operator
-
 - - - - - - - - -
 
 INTERPRETER:

@@ -573,28 +573,31 @@ namespace Python.Parser
             {
                 Expression lhs = Parser.AtomSubParser.ParseSingleSubscriptAttributeTarget();
                 Parser.Accept(":");
-                Expression ex = Parser.ParseExpression();
-                if (Parser.Peek().Value == "=")
+                if (!Parser.HasErrors())
                 {
-                    Parser.Advance();
-                    Expression rhs = ParseAnnotatedRhs();
-                    if (!Parser.HasErrors())
+                    Expression ex = Parser.ParseExpression();
+                    if (Parser.Peek().Value == "=")
                     {
-                        return new EvaluatedExpression
+                        Parser.Advance();
+                        Expression rhs = ParseAnnotatedRhs();
+                        if (!Parser.HasErrors())
                         {
-                            LeftHandValue = lhs,
-                            Annotation = ex,
-                            Operator = Operator.Set,
-                            RightHandValue = rhs
-                        };
+                            return new EvaluatedExpression
+                            {
+                                LeftHandValue = lhs,
+                                Annotation = ex,
+                                Operator = Operator.Set,
+                                RightHandValue = rhs
+                            };
+                        }
                     }
-                }
-                else
-                {
-                    if (!Parser.HasErrors())
+                    else
                     {
-                        // the RHS is optional in this assignment? leave it as a simple expression for now
-                        return lhs;
+                        if (!Parser.HasErrors())
+                        {
+                            // the RHS is optional in this assignment? leave it as a simple expression for now
+                            return lhs;
+                        }
                     }
                 }
             }

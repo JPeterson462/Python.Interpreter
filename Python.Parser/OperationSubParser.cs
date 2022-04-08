@@ -234,7 +234,8 @@ namespace Python.Parser
         public Expression ParseSum()
         {
             Expression expression = ParsingUtils.FlipExpressionTree(ParseTerm(), (op) => op == Operator.Multiply.Value || op == Operator.Divide.Value
-                                                                                        || op == Operator.FloorDivide.Value || op == Operator.Modulus.Value);
+                                                                                        || op == Operator.FloorDivide.Value || op == Operator.Modulus.Value
+                                                                                        || op == "@");
             if (Parser.Peek().Value == Operator.Add.Value)
             {
                 Parser.Advance();
@@ -303,17 +304,16 @@ namespace Python.Parser
                     RightHandValue = ParseTerm()
                 };
             }
-            // TODO what is the @ operator?
-            /*if (Parser.Peek().Value == Operato.Value)
+            if (Parser.Peek().Value == "@")
             {
                 Parser.Advance();
                 return new EvaluatedExpression
                 {
-                    LeftHandValue = null,
-                    Operator = Operator.Multiply,
+                    LeftHandValue = expression,
+                    Operator = new Operator("@"),
                     RightHandValue = ParseTerm()
                 };
-            }*/
+            }
             return expression;
         }
         public Expression ParseFactor()

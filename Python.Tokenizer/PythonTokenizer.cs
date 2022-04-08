@@ -309,7 +309,7 @@ namespace Python.Tokenizer
                 SkipWhitespace();
                 return null;
             }
-            Console.WriteLine("unknown: " + Source.Substring(Position, 10));
+            Console.WriteLine("unknown: " + Source.Substring(Position, Math.Min(10, Source.Length - Position)));
             Console.WriteLine("uh-oh!");
             return null;
         }
@@ -350,10 +350,9 @@ namespace Python.Tokenizer
         public string NextString()
         {
             int start = Position;
-            // FIXME this will need to be much smarter about escaped characters
             char opening = GetCurrentCharacter();
             Advance();
-            while (GetCurrentCharacter() != opening)
+            while (!(GetCurrentCharacter() == opening && Source[Position - 1] != '\\'))
             {
                 Advance();
             }

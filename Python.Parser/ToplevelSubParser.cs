@@ -17,6 +17,10 @@ namespace Python.Parser
             List<Expression> expressions = ParseExpressions();
             Parser.Accept(TokenType.EndOfExpression);
             Parser.Advance();
+            if (Parser.Errors.Count > 0)
+            {
+                throw new Exception("Syntax error!");
+            }
             return expressions;
         }
         //interactive: statement_newline
@@ -34,6 +38,10 @@ namespace Python.Parser
             }
             Parser.Accept(TokenType.EndOfExpression);
             Parser.Advance();
+            if (Parser.Errors.Count > 0)
+            {
+                throw new Exception("Syntax error!");
+            }
             return expressions;
         }
 
@@ -78,6 +86,10 @@ namespace Python.Parser
                     expressions.AddRange(Parser.ParseSimpleStmts().Statements);
                 }
             }
+            if (Parser.Errors.Count > 0)
+            {
+                throw new Exception("Syntax error!");
+            }
             return expressions;
         }
 
@@ -97,6 +109,10 @@ namespace Python.Parser
             if (Parser.Peek().Value == ",")
             {
                 Parser.Advance();
+            }
+            if (Parser.Errors.Count > 0)
+            {
+                throw new Exception("Syntax error!");
             }
             return expressions;
         }

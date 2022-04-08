@@ -62,7 +62,12 @@ namespace Python.Parser
             }
             else
             {
-                return ParseSimpleStmts();
+                CodeBlock block = ParseSimpleStmts();
+                if (Errors.Count > 0)
+                {
+                    throw new Exception("Syntax error!");
+                }
+                return block;
             }
         }
         // simple_stmts:

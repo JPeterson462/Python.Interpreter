@@ -110,7 +110,14 @@ namespace Python.Parser
         }
         public Token Peek(int n = 0)
         {
-            return Tokens[Position + n];
+            try
+            {
+                return Tokens[Position + n];
+            }
+            catch (Exception)
+            {
+                throw new Exception("Syntax error!");
+            }
         }
         public int IndexOf(string value)
         {
